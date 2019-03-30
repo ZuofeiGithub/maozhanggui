@@ -1,0 +1,281 @@
+﻿@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@using Adf.FrameWork.Service.LayUi
+@{
+    //2018.10.20 创建 侯鑫辉
+    //活动推送列表页
+
+    /*系统参数*/
+    Layout = "../master/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*页面参数*/
+    String curController = "/ent/activity";
+}
+
+@section MainHeader
+{
+    <style>
+        .rowThumbnail {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+    </style>
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">活动标题:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "activitytitle" })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">活动简介:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "activitysummary" })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">活动内容:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "activitycontent" })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "增加",
+    ClassName = "add",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "add" }
+})
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "修改",
+    ClassName = "modify",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "modify" }
+})
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "复制新增",
+    ClassName = "copyadd",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "copyadd" }
+})
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "删除",
+    ClassName = "delete",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Danger,
+    ExtHtmlAttributes = new { lay_event = "delete" }
+})
+}
+
+@section MainBottom
+{
+    <script>
+        var curRetDoCmd = "";
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'],
+            function() {
+                var table = layui.table,
+                    layer = layui.layer,
+                    element = layui.element,
+                    adfCommon = layui.adfCommon;
+
+                /*函数*/
+                //重新加载数据
+                function reloadData() {
+                    //查询条件
+                    var sWhere = {};
+                    sWhere.activitytitle = escape($("#activitytitle").val());
+                    sWhere.activitysummary = escape($("#activitysummary").val());
+                    sWhere.activitycontent = escape($("#activitycontent").val());
+
+                    //重新加载
+                    adfCommon.reloadStdTable(table, sWhere);
+                }
+
+                var colfmt_ishot = function(d) {
+                    var str = "";
+                    if (d.ishot == "0") {
+                        str = "<span style='color:red;'>不推荐</span>";
+                    } else if (d.ishot == "1") {
+                        str = "<span style='color:green;'>推荐</span>";
+                    }
+                    return str;
+                }
+                var colfmt_activitystatus = function(d) {
+                    var str = "";
+                    if (d.activitystatus == "0") {
+                        str = "<span style='color:red;'>隐藏</span>";
+                    } else if (d.activitystatus == "1") {
+                        str = "<span style='color:green;'>显示</span>";
+                    }
+                    return str;
+                }
+                var colfmt_activitythumbnail = function (d) {
+                    var str = "";
+                    var activitythumbnails = d.activitythumbnail;
+                    if (activitythumbnails != "")
+                    {
+                        str = "<img class='rowThumbnail' src=\"" + activitythumbnails.split(',')[0] + "\" />";
+                    }
+                    return str;
+                }
+
+                /*表格信息*/
+                //列
+                var colInfo = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'activitytitle', title: '活动标题' },
+                        { field: 'activitysummary', title: '活动简介' },
+                        { field: 'activitythumbnail', title: '活动封面图', templet: colfmt_activitythumbnail },
+                        { field: 'ishot', title: '是否推荐', templet: colfmt_ishot },
+                        { field: 'activitystatus', title: '活动状态', templet: colfmt_activitystatus },
+                        { width: 200, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                    ]
+                ];
+
+                //数据（通过控制器找到getlistdata方法 获取数据）
+                var dataUrl = "@curController/getlistdata";
+
+                //页面显示20条信息
+                var pageSize = 20;
+
+                //初始查询条件
+                var sWhere = {};
+
+                //初始化
+                adfCommon.setStdTable(table,
+                    colInfo,
+                    dataUrl,
+                    pageSize,
+                    sWhere,
+                    function(row) {
+                        var rowData = row.data;
+                        if (row.event == 'modify') {
+                            curRetDoCmd = "";
+                            var activitycode = rowData.activitycode;
+                            var sUrl = "@curController/detail?docmd=modify&mccode=@curGlobalModuleCode&activitycode=" +
+                                activitycode;
+                            adfCommon.dlgOpen("修改信息",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {
+                                    if (curRetDoCmd == "101") {
+                                        reloadData();
+                                    }
+                                });
+                        } else if (row.event == 'copyadd') {
+                            layer.confirm('确认要复制新增一条数据吗?',
+                                function(index) {
+                                    var activitycode = rowData.activitycode;
+                                    var sUrl = "@curController/execute?docmd=copyadd";
+                                    var param = {};
+                                    param.activitycode = activitycode;
+                                    //post提交
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function(retData) {
+                                            adfCommon.alert(retData.RetValue);
+                                            if (retData.RetStatus == 100) {
+                                                //关闭对话框
+                                                layer.close(index);
+                                                reloadData();
+                                            }
+                                        },
+                                        function() {});
+                                });
+                        }else if (row.event == 'delete') {
+                            layer.confirm('确认要删除吗?',
+                                function(index) {
+                                    var activitycode = rowData.activitycode;
+                                    var sUrl = "@curController/execute?docmd=delete";
+                                    var param = {};
+                                    param.activitycode = activitycode;
+                                    //post提交
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function(retData) {
+                                            adfCommon.alert(retData.RetValue);
+                                            if (retData.RetStatus == 103) {
+                                                //关闭对话框
+                                                layer.close(index);
+                                                //数据库删除成功后,在界面上进行删除.
+                                                row.del();
+                                            }
+                                        },
+                                        function() {});
+                                });
+                        }
+                    });
+
+                /*事件*/
+                $(".btnSearch").click(function () {
+                    reloadData();
+                });
+
+                //增加
+                $(".add").click(function() {
+                    var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                    curRetDoCmd = "";;
+                    adfCommon.dlgOpen("增加信息",
+                        sUrl,
+                        '100%',
+                        '100%',
+                        function() {
+                            if (curRetDoCmd == "100") {
+                                reloadData();
+                            }
+                        });
+                });
+
+                //点击小图放大
+                $(document).on("click", ".rowThumbnail", function () {
+                    var imgsrc = $(this).attr("src");
+                    if (imgsrc === "") {
+                        layer.msg("图片不存在");
+                        return;
+                    }
+                    var str = "<img src='" + imgsrc + "'>";
+                    top.layer.open({
+                        area: ["90%", "90%"],
+                        content: str
+                    });
+                });
+            });
+    </script>
+}

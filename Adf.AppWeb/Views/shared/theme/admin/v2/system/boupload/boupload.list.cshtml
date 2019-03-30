@@ -1,0 +1,55 @@
+﻿@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    Layout = null;
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    
+    //目前有的文件
+    MDataTable curDtMainList = ViewBag.DtMainList ?? new MDataTable();
+}
+
+<div class="layui-upload">
+    @Html.LayUiStdButtonSmall(new LayUiButtonAttr() {Caption = "选择文件", Id = "boSelectFile"})
+    <div class="layui-upload-list">
+        <table class="layui-table">
+            <thead>
+            <tr>
+                <th>文件名</th>
+                <th>上传人</th>
+                <th>上传时间</th>
+                <th>操作</th>
+            </tr></thead>
+            <tbody id="boFileList">
+            @{
+                int allCount = curDtMainList.Rows.Count;
+                for (int i = 0; i < curDtMainList.Rows.Count; i++)
+                {
+                    MDataRow drEntity = curDtMainList.Rows[i];
+                    <tr>
+                        <td>@drEntity.Get("uploadfilename", "")</td>
+                        <td>@drEntity.Get("uploaddate", "")</td>
+                        <td>@drEntity.Get("uploadusername", "")</td>
+                        <td><a target="_blank" href="@drEntity.Get("uploadfileserverpath", "")">查看</a></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+<script type="text/html" id="tplFileList">
+    <tr>
+        <td>pt_uploadfilename</td>
+        <td>pt_uploaddate</td>
+        <td>pt_uploadusername</td>
+        <td><a target="_blank" href="pt_uploadfileserverpath">查看</a></td>
+    </tr>
+</script>
+
+
+

@@ -1,0 +1,343 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/psmaster";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    MDataTable curDetial = ViewBag.curDetial ?? new MDataTable();
+    
+}
+
+@section MainHeader
+{
+
+}
+
+@section FormBody
+{
+
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-card-header-title">采购订单</div>
+            </div>
+            <div class="layui-card-body" style="padding: 24px;">
+                <div class="layui-row layui-col-space30">
+
+                    <div class="layui-col-md4">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">采购单号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="psno" lay-verify="title" value="@curDrMainEntity.Get("psno", "")" autocomplete="off" placeholder="请输入编号" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-col-md4">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">供应商</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="suppliercode" lay-verify="title" value="@curDrMainEntity.Get("suppliercode", "")" autocomplete="off" placeholder="请输入供用商" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="layui-row layui-col-space30">
+
+                    <div class="layui-col-md4">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">采购人</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="psusername" id="psusername" readonly="readonly" lay-verify="title" autocomplete="off" value="@curDrMainEntity.Get("psusername", "")"placeholder="请选择采购人" class="layui-input">
+                                <input type="hidden" name="psusercode" id="psusercode" value="@curDrMainEntity.Get("psusercode", "")">
+                            </div>
+                            <div class="layui-inline">
+                                @Html.LayUiSamllButton("选择人员", "btnSelectChargerUser")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-col-md4">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">备注</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="remark" lay-verify="title" autocomplete="off" value="@curDrMainEntity.Get("remark", "")"placeholder="请输入备注" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+       
+            <!--多从表-->
+            <div class="layui-tab">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">产品明细信息</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <div class="layui-row">
+                            <div class="layui-col-md9"></div>
+                            <div class="layui-col-md3">@Html.LayUiSamllButton("选择产品", "btnSelectSku")</div>
+                        </div>
+                        <table class="layui-table" id="detailInfo">
+                            <colgroup>
+                                <col width="150">
+                                <col width="150">
+                                <col width="150">
+                                <col width="200">
+                                <col width="150">
+                                <col width="150">
+                                <col width="150">
+                                <col>
+                            </colgroup>
+                            <thead>
+                            <tr>
+                                <th>操作</th>
+                                <th>产品</th>
+                                <th>规格</th>
+                                <th>单位</th>
+                                <th>销售价</th>
+                                <th>单价</th>
+                                <th>数量</th>
+                                <th>货位</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @{
+                                foreach (MDataRow dataRow in curDetial.Rows)
+                                {
+
+                                    <tr>
+                                        <td>
+                                            @Html.LayUiSamllButton("删除", "btnDeleteRow")
+                                        </td>
+                                        <td>@dataRow.Get("productname", "")</td>
+                                        <td>@dataRow.Get("color", "") @dataRow.Get("size", "") @dataRow.Get("spec", "")</td>
+                                        <td>@dataRow.Get("unit", "")</td>
+                                        <td>@dataRow.Get("saleprice", "")</td>
+                                        <td>
+                                            <input type="text" name="price[]" lay-verify="price" value="@dataRow.Get("price", "")" autocomplete="off" placeholder="单价" class="layui-input">
+                                            <input type="hidden" name="skucode[]" lay-verify="skucode" value="@dataRow.Get("skucode", "")" autocomplete="off" placeholder="skucode" class="layui-input">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="qty[]" lay-verify="qty" value="@dataRow.Get("qty", "")" autocomplete="off" placeholder="数量" class="layui-input">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="poscode[]" lay-verify="poscode" value="@dataRow.Get("poscode", "")" autocomplete="off" placeholder="货位" class="layui-input">
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            </tbody>
+                        </table>
+
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+    </div>
+
+    @Html.ExHidden("pscode", curDrMainEntity.Get("pscode", ""))
+
+    @Html.ExHidden("detailListCount", "0")
+}
+
+@section FormButton{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+    @Html.LayUiStdButton(new LayUiButtonAttr(){Id = "btnClose",Caption = "关闭"})
+}
+@section MainBottom
+{
+
+    <script type="text/html" id="tplRowInfo">
+        <tr>
+            <td>
+                @Html.LayUiSamllButton("删除", "btnDeleteRow")
+            </td>
+            <td>pt_productname</td>
+            <td>pt_spec</td>
+            <td>pt_unit</td>
+            <td>pt_saleprice</td>
+            <td>
+                <input type="text" name="price[]" lay-verify="price" value="pt_price" autocomplete="off" placeholder="单价" class="layui-input">
+                <input type="hidden" name="skucode[]" lay-verify="skucode" value="pt_skucode" autocomplete="off" placeholder="skucode" class="layui-input">
+            </td>
+            <td>
+                <input type="text" name="qty[]" lay-verify="qty" autocomplete="off" placeholder="数量" class="layui-input">
+            </td>
+            <td>
+                <input type="text" name="poscode[]" lay-verify="poscode" autocomplete="off" placeholder="货位" class="layui-input">
+            </td>
+
+        </tr>
+
+    </script>
+
+    <script>
+
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'element', 'laydate'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                laydate = layui.laydate,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            function initLayDate() {
+                lay('.curLayDate').each(function () {
+                    laydate.render({
+                        elem: this
+                      , trigger: 'click'
+                    });
+                });
+            }
+
+            initLayDate();
+
+            //自定义验证
+            form.verify({
+                //仓库编码
+                productname: function (value, item) {
+                    if (value === "") {
+                        return "仓库编码不能为空";
+                    }
+                }
+            });
+
+
+            //保存表单
+            form.on('submit(btnSubmit)', function (obj) {
+
+                var curDetailListCount = $("#detailInfo>tbody>tr").length;
+                //alert(curDetailListCount);
+                //$("#detailListCount").val(curDetailListCount);
+                //form.render();
+                var sUrl = "@curController/execute?docmd=@curDoCmd&stype=0";
+                var param = obj.field;
+                param.detailListCount = curDetailListCount;
+
+                console.log(param);
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+
+            //提交表单
+            form.on('submit(btnRefer)', function (obj) {
+
+                var curDetailListCount = $("#detailInfo>tbody>tr").length;
+                //alert(curDetailListCount);
+                //$("#detailListCount").val(curDetailListCount);
+                //form.render();
+                var sUrl = "@curController/execute?docmd=@curDoCmd&stype=1";
+                var param = obj.field;
+                param.detailListCount = curDetailListCount;
+
+                console.log(param);
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+
+
+
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            //增加行
+            $(".btnSelectSku").click(function () {
+
+                var tplInfo = $("#tplRowInfo").html();
+
+                var sUrl = "/renterp/sku/SelectMulti";
+                var sTitle = "选择产品";
+                adfCommon.dlgOpen(sTitle, sUrl, "90%", "90%", function () {
+                    var skuInfos = globalData;
+                    for (var i = 0; i < skuInfos.length; i++) {
+                        var sku = skuInfos[i];
+                        var rowInfo = tplInfo;
+
+                        //得到规格
+                        var specInfo = sku.color + " " + sku.size + " " + sku.spec;
+
+                        rowInfo = rowInfo.replace("pt_productname", sku.productname);
+                        rowInfo = rowInfo.replace("pt_saleprice", sku.saleprice);
+                        rowInfo = rowInfo.replace("pt_spec", specInfo);
+                        rowInfo = rowInfo.replace("pt_unit", sku.unit);
+                        rowInfo = rowInfo.replace("pt_price", sku.saleprice);
+                        rowInfo = rowInfo.replace("pt_skucode", sku.skucode);
+                        $("#detailInfo>tbody").append(rowInfo);
+                    }
+
+                    //初始化日期事件
+                    initLayDate();
+
+                    //提交前重新刷新
+                    form.render();
+
+                });
+
+            });
+
+            //选择采购人
+            $(".btnSelectChargerUser").click(function () {
+                adfCommon.dlgSelectUser("800px", "600px", function () {
+                    $("#psusercode").val(globalData.usercode);
+                    $("#psusername").val(globalData.username);
+                });
+            });
+            $("body").on("click", ".btnDeleteRow", function () {
+                $(this).parent().parent().remove();
+            });
+
+        });
+    </script>
+}

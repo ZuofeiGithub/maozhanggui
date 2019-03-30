@@ -1,0 +1,142 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/renterp/so";
+
+    int sotype = RequestHelper.GetQueryString("sotype", 0);
+    string orderstatus = RequestHelper.GetQueryString("orderstatus", "");
+    
+}
+
+@section MainHeader
+{
+}
+
+@section MainQuery
+{
+    <div class="layui-form">
+        <div class="layui-inline">
+            <label class="layui-form-label">货号:</label>
+            <div class="layui-inline">
+                @Html.LayUiInput("artno", "artno")
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">产品名称:</label>
+            <div class="layui-inline">
+                @Html.LayUiInput("productname", "productname")
+            </div>
+        </div>
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜索", "btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "add", LayerUiHtmlHelper.GetEvent("add"), LayUiButtonColor.Normal)
+}
+
+@section MainTableRowTool
+{
+
+}
+
+@section MainBottom
+{
+    <script>
+        var curRetDoCmd = "";
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.artno = $("#artno").val();
+                sWhere.productname = $("#productname").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+            var colfmt_date = function (d) {
+                var date1 = "";
+                var date2 = "";
+                var str = "";
+                if (!$.isEmptyObject(d.fromdate)) { date1 = d.fromdate.split(' ')[0]; }
+                if (!$.isEmptyObject(d.enddate)) { date2 = d.enddate.split(' ')[0]; }
+                if (date1 != "" && date2 != "") { str = date1 + " 至 " + date2; }
+                return str;
+            }
+            var colfmt_returnstate = function (d) {
+                var str = "";
+                if (d.isreturn == 1) {
+                    str = "<span style='color:green;'>是</span>";
+                } else {
+                    str = "<span style='color:red;'>否</span>";
+                }
+                return str;
+            }
+ 
+
+            /*表格信息*/
+            //列
+            var colInfo = [
+                [
+                    { field: 'productname', width: 150, title: '产品名称' },
+                    //{ field: 'artno', width: 150, title: '货号' },
+                    { field: 'skuspec', title: '规格' },
+                    { field: 'stocknum', width: 90, title: '总数量' },
+                    { field: 'fromenddate', width: 200, title: '租期', templet: colfmt_date },
+                    { field: 'membername', width: 150, title: '会员' },
+                    { field: 'qty', width: 90, title: '租赁数量' },
+                    //{ field: 'isReturn', width: 90, title: '是否还清', templet: colfmt_returnstate },
+                    { field: 'sono', width: 180, title: '订单编号' }
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/GetListRentSkuData";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            sWhere.orderstatus = "@orderstatus";
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) { reloadData(); }
+            });
+
+        });
+    </script>
+}

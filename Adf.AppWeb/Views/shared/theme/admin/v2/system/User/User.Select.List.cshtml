@@ -1,0 +1,74 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.select.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/manage/user";
+
+
+    //自定义参数
+
+}
+
+
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'usercode', width: 120, sort: true, title: '用户编码' }
+                , { field: 'username', width: 120, title: '用户名称' }
+                , { field: 'telphone', title: '电话' }
+            ]
+        ];
+
+        //数据Url
+        cfg_DataUrl = "@curController/getlistdata";
+
+    </script>
+}
+
+@section WhereInfo
+{
+    cfg_Where.usercode = $("#usercode").val();
+    cfg_Where.username = $("#username").val();
+}
+
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">用户编码:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("usercode","usercode")
+         </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">用户名称:</label>
+        <div class="layui-inline">
+             @Html.LayUiInput("username","username")
+        </div>
+    </div>
+
+}
+
+
+
+
+

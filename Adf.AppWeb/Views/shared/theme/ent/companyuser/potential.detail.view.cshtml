@@ -1,0 +1,174 @@
+﻿@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@using NPOI.HSSF.Record
+@{
+    //2018.11.12 创建 秦白驹
+    //报备客户详细
+
+    /*系统参数*/
+    Layout = "../master/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*当前业务*/
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/ent/companyuser";
+    MDataRow curDrMainEntity = ViewBag.potential ?? new MDataRow();
+}
+
+@section FormButton
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭" })
+}
+
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "报备人" ,ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialusername", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "报备时间", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialdate", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "意向客户名称", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialname", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "手机号", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialphone", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "地址", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialaddress", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "风格", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialstyle", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "方案", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialsln", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "面积", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialarea", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "预算", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialbudget", ""), ClassName = "texttl" })
+                }
+            }
+        }
+        
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md12" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "备注", ClassName = "label120" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = curDrMainEntity.Get("potentialremark", "") ,ClassName = "texttl" })
+                }
+            }
+        }
+    }
+
+
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'upload'],
+            function() {
+                var layer = layui.layer,
+                    form = layui.form,
+                    upload = layui.upload,
+                    adfCommon = layui.adfCommon;
+
+                //自定义验证
+                form.verify({
+                });
+
+                
+
+                //关闭
+                $("#btnClose").click(function() { adfCommon.dlgClose(); });
+            });
+    </script>
+
+}

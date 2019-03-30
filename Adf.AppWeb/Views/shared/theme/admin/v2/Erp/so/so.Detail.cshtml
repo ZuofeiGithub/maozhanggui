@@ -1,0 +1,610 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/erp/so";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    MDataTable curDetail = ViewBag.curDetail ?? new MDataTable();
+
+    int sotype = curDrMainEntity.Get("sotype", 0);
+    String soTypeClass = "";
+    if (sotype == 0)
+    {
+        soTypeClass = "hidesotype";
+    }
+}
+
+@section MainHeader
+{
+    <style>
+        .hidesotype {
+            display: none;
+        }
+    </style>
+}
+
+@section FormBody
+{
+
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-card-header-title">销售订单</div>
+            </div>
+            <div class="layui-card-body" style="padding: 24px;">
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">订单编号</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               Id = "sono",
+                               PlaceHolder = "保存后生成",
+                               Val = curDrMainEntity.Get("sono", ""),
+                               IsDisabled = true
+                           })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">会员名</label>
+                            <div class="layui-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        Id = "membername",
+                                                        PlaceHolder = "请选择会员",
+                                                        Val = curDrMainEntity.Get("membername", ""),
+                                                        VerifyName = "required",
+                                                        IsReadOnly = true
+                                                    })
+                                @Html.LayUiStdHidden("membercode", curDrMainEntity.Get("membercode", ""))
+                            </div>
+                            <div class="layui-inline">
+                                @Html.LayUiStdButton(new LayUiButtonAttr()
+                                                          {
+                                                              Caption = "选择",
+                                                              ClassName = "btnSelectMember",
+                                                              LayUiButtonTheme = LayUiButtonTheme.Normal,
+                                                              LayUiButtonSize = LayUiButtonSize.Sm
+                                                          })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">销售人员</label>
+                            <div class="layui-input-block">
+                                <div class="layui-inline">
+                                    @Html.LayUiStdInput(new LayUiInputAttr()
+                               {
+                                   Id = "saleusername",
+                                   PlaceHolder = "请选择销售人",
+                                   Val = curDrMainEntity.Get("saleusername", ""),
+                                   VerifyName = "required",
+                                   IsReadOnly = true
+                               })
+                                    @Html.LayUiStdHidden("saleusercode", curDrMainEntity.Get("saleusercode", ""))
+                                </div>
+                                <div class="layui-inline">
+                                    @Html.LayUiStdButton(new LayUiButtonAttr()
+                                                              {
+                                                                  Caption = "选择",
+                                                                  ClassName = "btnSelectSale",
+                                                                  LayUiButtonTheme = LayUiButtonTheme.Normal,
+                                                                  LayUiButtonSize = LayUiButtonSize.Sm
+                                                              })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">订单金额</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               Id = "summoney",
+                               PlaceHolder = "请输入金额",
+                               Val = curDrMainEntity.Get("summoney", ""),
+                               IsReadOnly = true,
+                               VerifyName = "required"
+                           })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">折扣金额</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               Id = "discount",
+                               PlaceHolder = "折扣金额",
+                               Val = curDrMainEntity.Get("discount", "0"),
+                               VerifyName = "required|number"
+                           })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">实付现金</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               Id = "paymoney",
+                               PlaceHolder = "请输入金额",
+                               Val = curDrMainEntity.Get("paymoney", ""),
+                               VerifyName = "required|number",
+                               IsReadOnly = true
+                           })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">支付方式</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdSelect(new LayUiSelectAttr()
+                           {
+                               Id = "paymenttype",
+                               Val = curDrMainEntity.Get("paymenttype", ""),
+                               DataType = "dic",
+                               DicCode = "paymenttype",
+                               VerifyName = "required"
+                           })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">是否支付</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdSelect(new LayUiSelectAttr()
+                           {
+                               VerifyName = "ispayed",
+                               Id = "ispayed",
+                               Texts = "否|是",
+                               Values = "0|1",
+                               Val = curDrMainEntity.Get("ispayed", "0")
+                           })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">订单描述</label>
+                            <div class="layui-input-block">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               Id = "sodesc",
+                               PlaceHolder = "请输入描述",
+                               Val = curDrMainEntity.Get("sodesc", "")
+                           })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!--多从表-->
+            <div class="layui-tab">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">产品明细信息</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <div class="layui-row">
+                            <div class="layui-col-md3">
+                                @Html.LayUiStdButton(new LayUiButtonAttr()
+                                                              {
+                                                                  Caption = "选择产品",
+                                                                  ClassName = "btnSelectSku",
+                                                                  LayUiButtonTheme = LayUiButtonTheme.Normal,
+                                                                  LayUiButtonSize = LayUiButtonSize.Sm
+                                                              })
+                            </div>
+                            <div class="layui-col-md9"></div>
+                        </div>
+                        <table class="layui-table" id="detailInfo">
+                            <colgroup>
+                                <col width="60">
+                                <col width="100">
+                                <col>
+                                <col>
+                                <col width="80">
+                                <col width="100">
+                                <col width="150">
+                                <col width="150">
+                                <col width="150">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>操作</th>
+                                    <th>货号</th>
+                                    <th>产品</th>
+                                    <th>规格</th>
+                                    <th>单位</th>
+                                    <th>销售价</th>
+                                    <th>单价</th>
+                                    <th>数量</th>
+                                    <th>小计</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @{
+                                    if (curDetail.Rows.Count > 0)
+                                    {
+                                        foreach (MDataRow dataRow in curDetail.Rows)
+                                        {
+                                    <tr>
+                                        <td>@Html.LayUiSamllButton("删除", "btnDeleteRow")</td>
+                                        <td>@dataRow.Get("artno", "")</td>
+                                        <td>@dataRow.Get("productname", "")</td>
+                                        <td>@dataRow.Get("skuspec", "")</td>
+                                        <td>@dataRow.Get("unit", "")</td>
+                                        <td>@dataRow.Get("factprice", "")</td>
+                                        <td>
+                                            <input type="text" value="@dataRow.Get("factprice", "")" name="dj[]" lay-verify="factprice" value="pt_factprice" autocomplete="off" placeholder="单价" class="layui-input rowFactPrice">
+                                            <input type="hidden" name="skucode[]" value="@dataRow.Get("skucode", "")">
+                                            <input type="hidden" name="productcode[]" value="@dataRow.Get("productcode", "")">
+                                            <input type="hidden" name="skuspec[]" value="@dataRow.Get("skuspec", "")">
+                                            <input type="hidden" name="productname[]" value="@dataRow.Get("productname", "")">
+                                        </td>
+                                        <td>
+                                            <input type="text" value="@dataRow.Get("qty", "")" name="sl[]" lay-verify="qty" autocomplete="off" placeholder="数量" class="layui-input rowQty">
+                                        </td>
+                                        <td>
+                                            @{
+                                            decimal subTotal = dataRow.Get("qty", 0) * dataRow.Get<decimal>("factprice", 0);
+                                                
+                                            }
+                                            <input readonly="readonly" type="text" value="@subTotal" name="subTotal[]" autocomplete="off" placeholder="小计" class="layui-input rowSubTotal">
+                                        </td>
+                                    </tr>
+                                        }
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    @Html.ExHidden("socode", curDrMainEntity.Get("socode", ""))
+    @Html.ExHidden("shopcode", curDrMainEntity.Get("shopcode", ""))
+
+    @Html.ExHidden("sotype", curDrMainEntity.Get("sotype", "0"))
+    @Html.ExHidden("detailListCount", "0")
+}
+
+@section FormButton{
+
+    @{
+        if (curDoCmd != "view")
+        {
+        @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+        }
+        else
+        {
+            if (curDrMainEntity.Get<int>("iscancel", 0) == 0)
+            {
+        @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnPrint", Caption = "打印" })
+            }
+        }
+    }
+
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Id = "btnClose",
+                             Caption = "关闭",
+                             LayUiButtonTheme = LayUiButtonTheme.Normal,
+                             LayUiButtonSize = LayUiButtonSize.Default
+                         })
+
+}
+@section MainBottom
+{
+
+    <script type="text/html" id="tplRowInfo">
+        <tr>
+            <td>@Html.LayUiSamllButton("删除", "btnDeleteRow")</td>
+            <td>pt_artno</td>
+            <td>pt_productname</td>
+            <td>pt_spec</td>
+            <td>pt_unit</td>
+            <td>pt_saleprice</td>
+            <td>
+                <input type="text" name="dj" lay-verify="factprice" value="pt_factprice" autocomplete="off" placeholder="单价" class="layui-input rowFactPrice">
+                <input type="hidden" name="skucode" value="pt_skucode">
+                <input type="hidden" name="productcode" value="pt_productcode">
+                <input type="hidden" name="skuspec" value="pt_skuspec">
+                <input type="hidden" name="productname" value="pt_productname">
+            </td>
+            <td>
+                <input type="text" name="sl" lay-verify="qty" autocomplete="off" placeholder="数量" value="0" class="layui-input rowQty">
+            </td>
+            <td>
+                <input type="text" name="subTotal" autocomplete="off" placeholder="小计" class="layui-input rowSubTotal" readonly="readonly">
+            </td>
+        </tr>
+    </script>
+
+    <script>
+        //已选中的商品
+        var artnoList = [];
+        //初始化填充已经选择的产品
+        $(function () {
+            var rows = $("#detailInfo>tbody > tr");
+            if (rows) {
+                rows.each(function () {
+                    var artno = $(this).find("td:eq(1)").text();
+                    artnoList.push(artno);
+                });
+            }
+
+
+            var docmd = "@curDoCmd";
+            if (docmd == "view") {
+                $(".btnSelectSku,.btnSelectMember,.btnSelectSale,.btnDeleteRow").hide();
+            }
+
+        });
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'element', 'laydate'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                laydate = layui.laydate,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+
+            //自定义验证
+            form.verify({
+                //仓库编码
+                qty: function (value, item) {
+                    if (value === "") {
+                        return "明细产品数量不能为空";
+                    }
+                }
+            });
+
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+
+                var curDetailListCount = $("#detailInfo>tbody>tr").length;
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                param.detailListCount = curDetailListCount;
+
+                var rowIndex = 0;
+                var rows = $("#detailInfo > tbody > tr");
+                rows.each(function () {
+                    rowIndex = rows.index($(this));
+                    var itemData = $(this).find("select,input").serializeArray();
+                    for (var i = 0; i < itemData.length; i++) {
+                        var item = itemData[i];
+                        var keyname = item.name + "[" + rowIndex + "]";
+                        param[keyname] = item.value;
+                    }
+                });
+                //console.log(param);
+                var loadIndex = layer.load(2);
+                adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                    layer.close(loadIndex);
+                    console.log(retData);
+                    if (retData.RetStatus === 400) { layer.msg(retData.RetValue); return false; }
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        adfCommon.alert(retData.RetValue);
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+
+
+            //弹窗选择产品
+            $(".btnSelectSku").click(function () {
+                var sUrl = "/erp/sku/SelectMulti?producttype=售";
+                var sTitle = "选择产品";
+                adfCommon.dlgOpen(sTitle, sUrl, "90%", "90%", function () { });
+            });
+            //选择会员
+            $(".btnSelectMember").click(function () {
+                adfCommon.dlgSelectMember("800px", "600px", function () {
+                    console.log(globalData);
+                    $("#membername").val(globalData.membername);
+                    $("#membercode").val(globalData.membercode);
+                });
+            });
+            //选择会员
+            $(".btnSelectSale").click(function () {
+                adfCommon.dlgSelectUser("800px", "600px", function () {
+                    console.log(globalData);
+                    $("#saleusername").val(globalData.username);
+                    $("#saleusercode").val(globalData.usercode);
+                    globalData = {};
+                });
+            });
+
+            $("body").on("click", ".btnDeleteRow", function () {
+                var delArtno = $(this).parent().siblings().eq(0).text();
+                var list = [];
+                for (var i = 0; i < artnoList.length; i++) {
+                    if (artnoList[i] != delArtno) {
+                        list.push(artnoList[i]);
+                    }
+                }
+                artnoList = list;
+                $(this).closest("tr").remove();
+                fillSumTotal();
+            });
+
+
+            //数量变化时的事件
+            $("body").on("change", ".rowQty", function () {
+                var params = getCalcParams(this);
+                calcChangeResult(params);
+            });
+
+            $("body").on("change", ".rowFactPrice", function () {
+                var params = getCalcParams(this);
+                calcChangeResult(params);
+            });
+
+            $("#btnPrint").click(function () {
+                window.open("@curController/detail?docmd=print&socode=@curDrMainEntity.Get("socode", "")");
+            });
+        });
+
+
+        //加入选择的产品
+        function addSelectedProduct(rowData) {
+            layui.use(['layer', 'form', 'adfCommon', 'element', 'laydate'], function () {
+                var layer = layui.layer,
+                    form = layui.form;
+                //判断是否选择过
+                if (rowData == null) {
+                    layer.msg("请选择一个售卖产品");
+                }
+                if ($.inArray(rowData.artno, artnoList) != -1) {
+                    layer.msg("该售卖产品已选择");
+                    return false;
+                }
+                artnoList.push(rowData.artno);
+
+                var sku = rowData;
+                var tplInfo = $("#tplRowInfo").html();
+                var rowInfo = tplInfo;
+
+                if (sku.cycledays == null) {
+                    sku.cycledays = 1;
+                }
+                if (sku.color == null) {
+                    sku.color = "";
+                }
+                if (sku.size == null) {
+                    sku.size = "";
+                }
+                if (sku.spec == null) {
+                    sku.spec = "";
+                }
+                //得到规格
+                var specInfo = sku.color + " " + sku.size + " " + sku.spec;
+
+                //console.log(sku);
+
+                rowInfo = rowInfo.replace("pt_productname", sku.productname);
+                rowInfo = rowInfo.replace("pt_saleprice", sku.saleprice);
+                rowInfo = rowInfo.replace("pt_spec", specInfo);
+                rowInfo = rowInfo.replace("pt_artno", sku.artno);
+                rowInfo = rowInfo.replace("pt_unit", sku.unit);
+                rowInfo = rowInfo.replace("pt_factprice", sku.saleprice);
+                rowInfo = rowInfo.replace("pt_skucode", sku.skucode);
+                rowInfo = rowInfo.replace("pt_productcode", sku.productcode);
+                rowInfo = rowInfo.replace("pt_skuspec", specInfo);
+                rowInfo = rowInfo.replace("pt_productname", sku.productname);
+                $("#detailInfo>tbody").append(rowInfo);
+            });
+        };
+
+        //计算数值变化后的结果
+        function calcChangeResult(params) {
+            console.log(params);
+            var objSubTotal = $(".rowSubTotal").eq(params.rowindex);
+            if (params.dj == "" || params.sl == "") {
+                objSubTotal.val(0);
+                fillSumTotal();
+                return;
+            }
+            var dj = params.dj;
+            var sl = params.sl;
+            var subTotal = dj * sl;
+
+            $(objSubTotal).val(subTotal);
+            fillSumTotal();
+        }
+
+        //重新计算所有小计金额及支付金额
+        function fillSumTotal() {
+            var allTotal = 0;
+            $(".rowSubTotal").each(function () {
+                allTotal += parseFloat($(this).val());
+            });
+            allTotal = Math.round(allTotal * 100) / 100;
+            $("#summoney").val(allTotal);
+            calcPayMoney();
+        }
+
+        //获取需要计算的行参数
+        function getCalcParams(e) {
+            var row = $(e).closest("tr");
+            var rowindex = $("#detailInfo > tbody > tr").index(row);
+            var rowFactPrice = row.find("td>input.rowFactPrice").val();
+            var rowQty = row.find("td>input.rowQty").val();
+            var p = {};
+            p.dj = rowFactPrice;
+            p.sl = rowQty;
+            p.rowindex = rowindex;
+            return p;
+        }
+
+
+
+        //自动计算实付金额=订单金额-折扣金额
+        function calcPayMoney() {
+            var ddje = $("#summoney").val(); //订单金额
+            var zkje = $("#discount").val(); //折扣金额
+
+            var ddje = $.isNumeric(ddje) ? Math.abs(Number(ddje)) : 0;
+            var zkje = $.isNumeric(zkje) ? 0 - Math.abs(Number(zkje)) : 0;
+            var sfje = ddje + zkje;
+            $("#paymoney").val(sfje.toFixed(2));
+        }
+
+        //折扣金额改变时重新计算实付金额
+        $("#discount").on("change", function () {
+            calcPayMoney();
+        });
+    </script>
+
+
+
+}

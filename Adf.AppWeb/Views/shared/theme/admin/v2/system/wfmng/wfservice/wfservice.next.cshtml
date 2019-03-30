@@ -1,0 +1,35 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = null;
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    
+    //下一个处理的人
+    
+    
+
+    //下一个处理用户的实体
+    MDataRow curDrReceiveUserEntity = ViewBag.DrReceiveUserEntity ?? new MDataRow();
+    
+    //接受结点
+    MDataRow curDrReceiveNodeEntity = ViewBag.DrReceiveNodeEntity ?? new MDataRow();
+
+
+}
+
+<span>处理者:@curDrReceiveUserEntity.Get("username", "")</span><span>处理节点:@curDrReceiveNodeEntity.Get("nodename", "")</span>
+@Html.ExHidden("receiveusercode",curDrReceiveUserEntity.Get("usercode",""))
+@Html.ExHidden("receivenodecode",curDrReceiveNodeEntity.Get("nodecode",""))

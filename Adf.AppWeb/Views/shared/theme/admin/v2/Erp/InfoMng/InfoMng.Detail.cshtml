@@ -1,0 +1,329 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/infomng";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+
+    
+    
+}
+
+@section MainHeader
+{
+    <script src="@curGlobalAdminResPath/ueditor/ueditor.config.js"></script>
+    <script src="@curGlobalAdminResPath/ueditor/ueditor.all.min.js"></script>
+}
+
+@section FormBody
+{
+
+    @{
+        MDataRow curInfoCate = ViewBag.curInfoCate ?? new MDataRow();
+        string catename = curInfoCate.Get("catename", "");
+        string catedes = curInfoCate.Get("metadescription", "");
+        if (!String.IsNullOrEmpty(catedes))
+        {
+        <blockquote class="layui-elem-quote layui-quote-nm" style="color: #f33;">提示：【@(catename)】，@catedes</blockquote>
+        }
+    }
+
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "标题" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "infotitle", Val = curDrMainEntity.Get("infotitle", ""), VerifyName = "required" })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "副标题" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "subtitle", Val = curDrMainEntity.Get("subtitle", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "排序值" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "infoorder", Val = curDrMainEntity.Get("infoorder", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "转向地址" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "redirecturl", Val = curDrMainEntity.Get("redirecturl", "") })
+                }
+            }
+        }
+
+
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "小图" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "smallimage", Val = curDrMainEntity.Get("smallimage", "") })
+                }
+        <div class="layui-btn-group">
+            @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnUploadSmallImage", Caption = "上传", LayUiButtonTheme = LayUiButtonTheme.Normal })
+            @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnDelSmallImage", Caption = "删除", LayUiButtonTheme = LayUiButtonTheme.Normal })
+            @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnViewSmallImage", Caption = "查看", LayUiButtonTheme = LayUiButtonTheme.Normal })
+        </div>
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "大图" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "bigimage", Val = curDrMainEntity.Get("bigimage", "") })
+                }
+        <div class="layui-btn-group">
+            @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnUploadBigImage", Caption = "上传", LayUiButtonTheme = LayUiButtonTheme.Normal })
+            @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnDelBigImage", Caption = "删除", LayUiButtonTheme = LayUiButtonTheme.Normal })
+            @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnViewBigImage", Caption = "查看", LayUiButtonTheme = LayUiButtonTheme.Normal })
+        </div>
+            }
+        }
+
+
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md12" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "简介" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdTextArea(new LayUiTextAreaAttr() { Id = "introduce", Val = curDrMainEntity.Get("introduce", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md12" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "内容" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdUEditor(new LayUiStdUEditorAttr() { Id = "infocontent", Val = curDrMainEntity.Get("infocontent", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "来源" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "fromsource", Val = curDrMainEntity.Get("fromsource", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "作者" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "author", Val = curDrMainEntity.Get("author", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "网页关键字" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "metakeywords", Val = curDrMainEntity.Get("metakeywords", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "网页描述" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+        @Html.LayUiStdInput(new LayUiInputAttr() { Id = "metadescription", Val = curDrMainEntity.Get("metadescription", "") })
+                }
+            }
+        }
+    }
+
+    @Html.ExHidden("catecode", curDrMainEntity.Get("catecode", ""))
+    @Html.ExHidden("infocode", curDrMainEntity.Get("infocode", ""))
+}
+@section FormButton
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnSave", Caption = "保存", IsSubmit = true, FilterName = "btnSubmit" })
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭", LayUiButtonSize = LayUiButtonSize.Default,LayUiButtonTheme = LayUiButtonTheme.Normal })
+}
+@section MainBottom
+{
+    <script>
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'upload'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                upload = layui.upload,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+                //角色编码
+                infotitle: function (value, item) {
+                    if (value === "") {
+                        return "标题不能为空";
+                    }
+                }
+            });
+
+            //上传小图
+            adfCommon.uploadImage("#btnUploadSmallImage", upload, function (retData) {
+                if (retData.hasOwnProperty("ServerRelativeFileName")) {
+                    $("#smallimage").val(retData.ServerRelativeFileName);
+                } else {
+                    adfCommon.alert("图片上传失败");
+                }
+            });
+            //上传大图
+            adfCommon.uploadImage("#btnUploadBigImage", upload, function (retData) {
+                if (retData.hasOwnProperty("ServerRelativeFileName")) {
+                    $("#bigimage").val(retData.ServerRelativeFileName);
+                } else {
+                    adfCommon.alert("图片上传失败");
+                }
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                param.infocontent = UE.getEditor('infocontent').getContent();
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.globalData = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+
+            //---------------------
+            function checkEmptyImg(e) {
+                var url = e.val();
+                if (url == "") { layer.msg("请先上传图片"); return false; }
+                return true;
+            }
+            function delImg(e) {
+                layer.confirm("确定删除图片吗？", function (index) {
+                    var param = { filename: escape(e.val()) }
+                    var url = "/renterp/product/DelUploadFile";
+                    $.getJSON(url, param, function (d) {
+                        console.log(d);
+                        layer.msg(d.RetValue);
+                        if (d.RetStatus == 200) { e.val(""); }
+                        layer.close(index);
+                    });
+                });
+            }
+            function viewImg(e) {
+                var url = e.val();
+                top.layer.open({
+                    area: ["90%", "90%"],
+                    content: '<img src="' + url + '" />'
+                });
+            }
+            $("#btnDelSmallImage").on("click", function () {
+                var e = $("#smallimage");
+                if (!checkEmptyImg(e)) { return; }
+                delImg(e);
+            });
+            $("#btnViewSmallImage").on("click", function () {
+                var e = $("#smallimage");
+                if (!checkEmptyImg(e)) { return; }
+                viewImg(e);
+            });
+            $("#btnDelBigImage").on("click", function () {
+                var e = $("#bigimage");
+                if (!checkEmptyImg(e)) { return; }
+                delImg(e);
+            });
+            $("#btnViewBigImage").on("click", function () {
+                var e = $("#bigimage");
+                if (!checkEmptyImg(e)) { return; }
+                viewImg(e);
+            });
+
+        });
+
+
+
+    </script>
+}

@@ -1,0 +1,340 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/manage/LayUiTest";
+
+
+    //自定义参数
+
+}
+
+@section BaseHeader
+{
+        <link rel="stylesheet" href="/style/v2/layui/css/layui.css" />
+    <link rel="stylesheet" href="/style/v2/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="/style/v2/css/adf-layui.css" media="all"/>
+    <link rel="stylesheet" href="/style/v2/css/adf-common.css" media="all"/>
+
+    <style>
+        .layui-row {
+            margin-bottom: 10px;
+        }
+    </style>
+
+}
+
+
+
+@section BaseBody
+{
+    <div class="layui-row">
+        input
+
+    </div>
+    <div class="layui-form">
+        <div class="layui-row">
+            <div class="layui-inline">
+                @Html.LayUiStdInput(new LayUiInputAttr() {Id = "username", PlaceHolder = "请输入文字"})
+            </div>
+
+        </div>
+    </div>
+        <div class="layui-row">
+        select 文本数据源
+
+    </div>
+    <div class="layui-form">
+        <div class="layui-row">
+            <div class="layui-inline">
+                @Html.LayUiStdSelect(new LayUiSelectAttr() {Id = "ispayed", Val = "-1", Texts = "-请选择-|微信|支付宝|现金", Values = "-1|0|1|2", VerifyName = "required"})
+            </div>
+
+        </div>
+    </div>
+
+            <div class="layui-row">
+        按钮
+
+    </div>
+    <div class="layui-form">
+        <div class="layui-row">
+            <div class="layui-inline">
+                @Html.LayUiExtButton(new LayUiButtonAttr() {Caption = "增加", LayUiButtonSize = LayUiButtonSize.Sm, LayUiButtonTheme = LayUiButtonTheme.Danger})
+                @Html.LayUiExtButton(new LayUiButtonAttr() {Caption = "增加", ClassName = "btnAdd", LayUiButtonSize = LayUiButtonSize.Sm, LayUiButtonTheme = LayUiButtonTheme.Danger, Icon = "&#xe608;"})
+            </div>
+
+        </div>
+        <div class="layui-row">
+            @Html.LayUiExtButton(new LayUiButtonAttr() {Caption = "增加", IsFluid = true, ClassName = "btnAdd", Icon = "&#xe608;"})
+        </div>
+        <div class="layui-row">
+            标准按钮: @Html.LayUiStdButton(new LayUiButtonAttr() {Caption = "增加", ClassName = "btnAdd"})
+        </div>
+        <div class="layui-row">
+            标准小按钮: @Html.LayUiStdButtonSmall(new LayUiButtonAttr() {Caption = "增加", ClassName = "btnAdd"}) @Html.LayUiStdButtonSmall(new LayUiButtonAttr() {Caption = "增加", ClassName = "btnAdd", LayUiButtonTheme = LayUiButtonTheme.Danger})
+        </div>
+        <div class="layui-row">
+            提交按钮: @Html.LayUiStdButtonSmall(new LayUiButtonAttr() {Caption = "增加", ClassName = "btnAdd", IsSubmit = true})
+
+        </div>
+        <div class="layui-row">
+            事件按钮: @Html.LayUiStdButtonSmall(new LayUiButtonAttr() {Caption = "增加", ClassName = "btnAdd",FilterName = "btnSubmit"})
+
+        </div>
+
+
+        <div class="layui-row">
+            select <br/>
+            @Html.LayUiStdSelect(new LayUiSelectAttr() {Id = "paymenttype", Val = "", DataType = "dic", DicCode = "paymenttype"})
+
+        </div>
+
+        <div class="layui-row">
+            select <br/>
+            @Html.LayUiStdSelect(new LayUiSelectAttr() {Id = "paymenttype", Val = "", DataType = "dic", DicCode = "paymenttype"})
+
+        </div>
+
+        <div class="layui-row">
+            textarea
+        </div>
+
+        <div class="layui-row">
+            @Html.LayUiStdTextArea(new LayUiTextAreaAttr() {Id = "aa", Val = "xxxxx"})
+        </div>
+
+        <div class="layui-row">
+            单个checkbox
+        </div>
+
+        <div class="layui-row">
+            @Html.LayUiStdCheckBox(new LayUiCheckBoxAttr() {Name = "aa", Val = "xxxxx", Title = "音乐"})
+        </div>
+
+        <div class="layui-row">
+            日期
+        </div>
+
+        <div class="layui-row">
+            @Html.LayUiStdInput(new LayUiInputAttr() {Id = "curDate"})
+        </div>
+
+        <div class="layui-row">
+            RadioGroup Text方式
+        </div>
+
+        <div class="layui-row">
+            @Html.LayUiStdRadioGroup(new LayUiRadioGroupAttr() {Name = "sex",Texts = "男|女",Val = "0",Values = "1|0"})
+        </div>
+
+        <div class="layui-row">
+            RadioGroup 数据字典方式
+        </div>
+
+        <div class="layui-row">
+            @Html.LayUiStdRadioGroup(new LayUiRadioGroupAttr() {Name = "edudegree",DicCode = "edudegree",DataType = "dic"})
+        </div>
+
+
+    </div>
+
+    @using (Html.LayUiStdCard(new LayUiCardAttr() {Id = "x", Title = "xx"}))
+    {
+        <div class="layui-row">
+            xx
+        </div>
+    }
+
+    @using (Html.LayUiStdRow(new LayUiRowAttr(){Id = "xxx"}))
+    {
+        using (Html.LayUiStdColumn(new LayUiColumnAttr(){Count = 4}))
+         {
+              @Html.LayUiStdInput(new LayUiInputAttr() {Id = "curDate2"})
+         }
+            using (Html.LayUiStdColumn(new LayUiColumnAttr() { Count = 4 }))
+            {
+                 @Html.LayUiStdInput(new LayUiInputAttr() {Id = "curDate3"})
+            }
+    }
+
+    @using (Html.LayUiStdRow(new LayUiRowAttr(){Id = "xxx"}))
+    {
+        using (Html.LayUiStdColumn(new LayUiColumnAttr(){Count = 4}))
+        {
+            
+                <label class="layui-form-label">单行输入框</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input"/>
+                </div>
+            
+        }
+        using (Html.LayUiStdColumn(new LayUiColumnAttr() { Count = 4 }))
+        {
+           
+                <label class="layui-form-label">单行输入框</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input"/>
+                </div>
+               
+        }
+    }
+    @using (Html.LayUiStdRow(new LayUiRowAttr(){Id = "xxx"}))
+    {
+        using (Html.LayUiStdColumn(new LayUiColumnAttr(){Count = 6}))
+        {
+            
+                <label class="layui-form-label">单行输入框</label>
+
+                <div class="layui-inline">
+                    <input type="text"  name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input"/>
+                </div>
+
+
+            <button type="reset" class="layui-btn layui-btn-primary">重置1</button>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        
+           
+        }
+        using (Html.LayUiStdColumn(new LayUiColumnAttr() { Count = 6 }))
+        {
+            
+                <label class="layui-form-label">单行输入框</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                </div>
+               
+        }
+
+    }
+    @using (Html.LayUiStdRow(new LayUiRowAttr() { Id = "xxx" }))
+    {
+        using (Html.LayUiStdColumn(new LayUiColumnAttr() { Count = 6 }))
+        {
+            
+                <label class="layui-form-label">单行输入框</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                </div>
+            
+        }
+        using (Html.LayUiStdColumn(new LayUiColumnAttr() { Count = 4 }))
+        {
+            <label class="layui-form-label">单行输入框</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                </div>    
+        }
+
+    }
+
+
+        @using (Html.LayUiStdRow(new LayUiRowAttr(){Id = "xxx"}))
+    {
+        using (Html.LayUiStdColumn(new LayUiColumnAttr(){Count = 6}))
+        {
+            <div class="layui-form-item">
+                <label class="layui-form-label">单行输入框1</label>
+
+                <div class="layui-inline">
+                    <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input"/>
+                </div>
+
+
+                <button type="reset" class="layui-btn layui-btn-primary">重置1</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+            
+        
+           
+        }
+        using (Html.LayUiStdColumn(new LayUiColumnAttr() { Count = 6 }))
+        {
+            <div class="layui-form-item">
+                <label class="layui-form-label">单行输入框2</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                </div>
+            </div>
+            
+               
+        }
+        
+         using (Html.LayUiStdColumn(new LayUiColumnAttr() { Count = 6 }))
+        {
+
+            <div class="layui-form-item">
+
+                <label class="layui-form-label">单行输入框3</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                </div>
+            </div>
+            
+            
+        }
+         using (Html.LayUiStdColumn(new LayUiColumnAttr() { Count = 6 }))
+         {
+             <div class="layui-form-item">
+                 <label class="layui-form-label">单行输入框</label>
+                 <div class="layui-input-block">
+                     <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                 </div>
+             </div>
+            
+             }
+
+    }
+   
+
+}
+
+@section BaseBottom
+{
+    
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'form', 'laydate', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                form = layui.form,
+                laydate = layui.laydate,
+                adfCommon = layui.adfCommon;
+
+            //日期
+            laydate.render({
+                elem: '#curDate'
+            });
+
+            
+
+
+        });
+
+    </script>
+}
+
+
+
+

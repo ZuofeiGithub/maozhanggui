@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    
+    <script type="text/javascript" src="/Style/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Style/js/adfutil.js"></script>
+    
+    <script type="text/javascript">
+        
+        //加载完成后得到AccessToken
+        $(function() {
+            getAccessToken();
+        });
+
+        
+        function getAccessToken() {
+            var curAccessToken = "";
+            var sUrl = "/oauth/gettoken";
+            var param = {};
+            param.client_id = "1234";
+            param.client_secret = "5678";
+            param.grant_type = "client_credentials";
+
+            ajaxSyncPost(sUrl, param, function(retData) {
+                console.log(retData);
+                var objData = JSON.parse(retData);
+                curAccessToken = objData.access_token;
+                console.log(curAccessToken);
+
+            }, function () { });
+            return curAccessToken;
+        }
+
+        function GetInfo() {
+            var sUrl = "/api/service/GetBanner";
+            var param = {};
+            param.UserCode = "ntjdadmin";
+            ajaxSyncGetWebApi(sUrl, param, function(retData) {
+                console.log(retData);
+                //字符串转Json
+                var curInfo = JSON.parse(retData);
+                //提示用户信息
+                alert(curInfo.usercode);
+
+            }, function() {});
+
+        }
+      
+        //传值
+        function doPost() {
+            var sUrl = "/api/service/getproject";
+           
+            ajaxSyncPostWebApi(sUrl,
+                 function(retData) {
+                console.log(retData);
+            }, function() {});
+        }
+
+    </script>
+</head>
+<body>
+    
+<button onclick="getAccessToken();">得到accesstoken</button>
+<button onclick="GetInfo();">得到values下的一个值</button>
+<br/>
+<button onclick="doPost();">Post提交</button>
+
+    
+
+
+</body>
+</html>

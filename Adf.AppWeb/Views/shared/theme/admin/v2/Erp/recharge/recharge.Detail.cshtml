@@ -1,0 +1,220 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using Adf.RentErp.Service
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/recharge";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+    
+}
+
+@section MainHeader
+{
+
+}
+
+@section FormBody
+{
+    <div class="layui-card">
+        <div class="layui-card-header">
+            <div class="layui-card-header-title">会员充值</div>
+        </div>
+        <div class="layui-card-body" style="padding: 24px;">
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">会员</label>
+                        <div class="layui-input-block">
+                            <div class="layui-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        Id = "membername",
+                                                        PlaceHolder = "请选择会员",
+                                                        Val = curDrMainEntity.Get("membername", ""),
+                                                        VerifyName = "required",
+                                                        IsReadOnly = true
+                                                    })
+                                @Html.Hidden("membercode", curDrMainEntity.Get("membercode", ""))
+
+                            </div>
+                            <div class="layui-inline">
+                                @Html.LayUiStdButton(new LayUiButtonAttr()
+                                                     {
+                                                         Caption = "选择",
+                                                         ClassName = "btnSelectMember",
+                                                         LayUiButtonSize = LayUiButtonSize.Sm,
+                                                         LayUiButtonTheme = LayUiButtonTheme.Normal
+                                                     })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-md12">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">充值金额</label>
+                        <div class="layui-input-inline">
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    Id = "money",
+                                                    PlaceHolder = "金额",
+                                                    Val = curDrMainEntity.Get("money", ""),
+                                                    VerifyName = "required"
+                                                })
+                        </div>
+                        @Html.LayuiStdFormHints(new FormHintsAttr()
+                                                {
+                                                    Caption = "* 充值或退款金额",
+                                                    ForeColor = "#999"
+                                                })
+                    </div>
+                </div>
+                <div class="layui-col-md12">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">兑换积分</label>
+                        <div class="layui-input-inline">
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    Id = "score",
+                                                    PlaceHolder = "积分",
+                                                    Val = curDrMainEntity.Get("score", ""),
+                                                    VerifyName = "required"
+                                                })
+                        </div>
+                        @Html.LayuiStdFormHints(new FormHintsAttr()
+                                                {
+                                                    Caption = "* 兑换或减少积分",
+                                                    ForeColor = "#999"
+                                                })
+                    </div>
+                </div>
+                <div class="layui-col-md12">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">备注</label>
+                        <div class="layui-input-inline">
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    Id = "remark",
+                                                    Val = curDrMainEntity.Get("remark", "")
+                                                })
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md12">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">处理方式</label>
+                        <div class="layui-input-inline">
+                            @Html.LayUiStdSelect(new LayUiSelectAttr()
+                                                 {
+                                                     Id = "rechargetype",
+                                                     Name = "rechargetype",
+                                                     Texts = "加分|减分",
+                                                     Values = "0|-1",
+                                                     Val = curDrMainEntity.Get("rechargetype", "0")
+                                                 })
+                        </div>
+                        @Html.LayuiStdFormHints(new FormHintsAttr()
+                                                {
+                                                    Caption = "* 加分=积分增加，金额入账；减分=积分减少，金额出账",
+                                                    ForeColor = "#999"
+                                                })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Hidden("rechargecode", curDrMainEntity.Get("rechargecode", ""))
+}
+@section FormButton
+{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Id = "btnClose",
+                             Caption = "关闭",
+                             LayUiButtonSize = LayUiButtonSize.Default,
+                             LayUiButtonTheme = LayUiButtonTheme.Normal
+                         })
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+
+            //自定义验证
+            form.verify({
+                membername: function (value, item) {
+                    if (value === "") {
+                        return "请选择会员";
+                    }
+                }
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                //console.log(param);
+
+                var loadindex = layer.load(2);
+                adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                    layer.close(loadindex);
+                    console.log(retData);
+                    var retstatus = retData.RetStatus;
+                    var retvalue = retData.RetValue;
+                    if (retstatus === 400) {
+                        layer.msg(retvalue);
+                        return false;
+                    }
+                    adfCommon.msgDo(retvalue, function () {
+                        if (retstatus == 100 || retstatus == 101) {
+                            //刷新父级数据
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            //选择会员
+            $(".btnSelectMember").click(function () {
+                adfCommon.dlgSelectMember("800px", "600px", function () {
+                    console.log(globalData);
+                    $("#membername").val(globalData.membername);
+                    $("#membercode").val(globalData.membercode);
+                });
+            });
+
+        });
+    </script>
+}

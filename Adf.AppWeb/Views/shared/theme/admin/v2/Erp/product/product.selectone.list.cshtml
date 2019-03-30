@@ -1,0 +1,73 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.select.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/erp/product";
+
+}
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'productname', title: '产品名称' }
+                    , { field: 'artno', title: '产品货号' }
+                    , { field: 'unit', width: 80, title: '单位' }
+                    , { field: 'catename', width: 100, title: '产品分类' }
+                    , { field: 'createdatetime', width: 160, title: '创建时间' }
+                    , { field: 'productorder', width: 80, title: '排序值' }
+                   //设置固定
+                ]
+        ];
+        //数据Url
+        cfg_DataUrl = "@curController/GetListData";
+        //选择多列
+        cfg_isMultiy = 0;
+
+    </script>
+}
+
+@section WhereInfo
+{
+    cfg_Where.productname = $("#productname").val();
+    cfg_Where.artno = $("#artno").val();
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">产品名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("productname","productname")
+         </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">货号:</label>
+        <div class="layui-inline">
+             @Html.LayUiInput("artno","artno")
+        </div>
+    </div>
+
+}
+
+
+
+
+

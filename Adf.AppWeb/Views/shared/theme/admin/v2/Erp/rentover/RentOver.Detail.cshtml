@@ -1,0 +1,202 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using Adf.RentErp.Service
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/rentover";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+    
+}
+
+@section MainHeader
+{
+
+}
+
+
+@section FormBody
+{
+
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-card-header-title">租赁收款</div>
+            </div>
+            <div class="layui-card-body" style="padding: 24px;">
+                
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("收款单号"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    PlaceHolder = "自动流水号",
+                                                    Id = "refundno",
+                                                    Val = curDrMainEntity.Get("refundno", ""),
+                                                    IsReadOnly = true
+                                                })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("收款金额"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    PlaceHolder = "￥0.00",
+                                                    Id = "refundmoney",
+                                                    Val = curDrMainEntity.Get("refundmoney", ""),
+                                                    VerifyName = "required|number"
+                                                })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("收款时间"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    PlaceHolder = "yyyy-MM-dd",
+                                                    Id = "refunddate",
+                                                    Val = curDrMainEntity.Get<DateTime>("refunddate", DateTime.Now).ToString("yyyy-MM-dd"),
+                                                    VerifyName = "required|date"
+                                                })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">租赁单号</label>
+                            <div class="layui-input-block">
+                                <div class="layui-inline">
+                                    @Html.LayUiStdInput(new LayUiInputAttr()
+                                                        {
+                                                            PlaceHolder = "请选择租赁订单",
+                                                            Id = "sono",
+                                                            Val = curDrMainEntity.Get("sono", ""),
+                                                            VerifyName = "required",
+                                                            IsReadOnly = true
+                                                        })
+                                    @Html.Hidden("socode", curDrMainEntity.Get("socode", ""))
+                                </div>
+                                <div class="layui-inline">
+                                    @Html.LayUiStdButton(new LayUiButtonAttr()
+                                                         {
+                                                             Caption = "选择租赁订单",
+                                                             ClassName = "btnSelectSono",
+                                                             LayUiButtonTheme = LayUiButtonTheme.Normal,
+                                                             LayUiButtonSize = LayUiButtonSize.Sm
+                                                         })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">收款备注</label>
+                            <div class="layui-input-block">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        PlaceHolder = "",
+                                                        Id = "remark",
+                                                        Val = curDrMainEntity.Get("remark", "")
+                                                    })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <blockquote class="layui-elem-quote layui-quote-nm" style="color: #f60;">备注：此功能可用于超期收入或修理费收入</blockquote>
+    @Html.Hidden("refundcode", curDrMainEntity.Get("refundcode", ""))
+
+}
+
+
+@section FormButton{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Id = "btnClose", Caption = "关闭" ,
+                             LayUiButtonSize=LayUiButtonSize.Default,
+                             LayUiButtonTheme = LayUiButtonTheme.Normal
+                         })
+}
+
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'laydate'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon,
+                laydate = layui.laydate;
+
+            laydate.render({ elem: "#refunddate" });
+
+            //自定义验证
+            form.verify({
+                number1: function (value, item) {
+                    if (value === "") {
+                        return "";
+                    }
+                }
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                    console.log(retData);
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            //选择已归还的租赁订单
+            $(".btnSelectSono").click(function () {
+                var sUrl = "/renterp/so/allreturned";
+                var sTitle = "选择已归还的租赁订单";
+                adfCommon.dlgOpen(sTitle, sUrl, "90%", "90%", function () {
+                    if ($.isEmptyObject(globalData)) { return false; }
+                    var d = globalData;
+                    globalData = {};
+                    $("#sono").val(d.sono);
+                    $("#socode").val(d.socode);
+                    $("#membercode").val(d.membercode);
+                    console.log(d);
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,67 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.select.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/manage/role";
+
+}
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'rolecode', width: 120, sort: true, title: '角色编码' }
+                , { field: 'rolename', width: 120, title: '角色名称' }
+            ]
+        ];
+
+        //数据Url
+        cfg_DataUrl = "@curController/getlistdata";
+
+    </script>
+}
+
+@section WhereInfo
+{
+    cfg_Where.rolecode = $("#rolecode").val();
+    cfg_Where.rolename = $("#rolename").val();
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">角色编码:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("rolecode","rolecode")
+         </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">角色名称:</label>
+        <div class="layui-inline">
+             @Html.LayUiInput("rolename","rolename")
+        </div>
+    </div>
+
+}
+
+
+
+
+

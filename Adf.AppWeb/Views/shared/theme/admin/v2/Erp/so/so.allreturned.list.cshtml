@@ -1,0 +1,75 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.select.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/renterp/so";
+
+}
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' },
+                { field: 'sono', width: 180, title: '租赁单号' },
+                { field: 'membername', width: 150, title: '会员名称' },
+                { field: 'createdatetime', width: 170, title: '下单时间' },
+                { field: 'summoney', width: 90, title: '订单金额' },
+                { field: 'payscore', width: 90, title: '支付积分' },
+                { field: 'paymoney', width: 90, title: '支付金额' },
+                { field: 'deposit', width: 90, title: '押金' },
+                { field: 'saleusername', width: 90, title: '销售人员' },
+                { field: 'sodesc', title: '备注' }
+            ]
+        ];
+        //数据Url
+        cfg_DataUrl = "@curController/getreturnselectlistdata";
+        //选择多列
+        cfg_isMultiy = 0;
+
+    </script>
+}
+
+@section WhereInfo
+{
+    cfg_Where.sono = $("#sono").val();
+    cfg_Where.membername = $("#membername").val();
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">订单编号:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("sono","sono")
+         </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">会员名称:</label>
+        <div class="layui-inline">
+             @Html.LayUiInput("membername","membername")
+        </div>
+    </div>
+
+}
+
+
+
+
+

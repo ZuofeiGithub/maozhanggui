@@ -1,0 +1,255 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/erp/product";
+
+
+    //自定义参数
+    MDataTable curDtShopProductCateAll = ViewBag.DtShopProductCateAll ?? new MDataTable();
+}
+
+@section MainHeader
+{
+}
+
+@section MainQuery
+{
+    <div class="layui-form">
+        <div class="layui-inline">
+            <label class="layui-form-label">产品货号:</label>
+            <div class="layui-inline">
+                @Html.LayUiInput("artno", "artno")
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">产品名称:</label>
+            <div class="layui-inline">
+                @Html.LayUiInput("productname", "productname")
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">产品分类:</label>
+            <div class="layui-inline" style="width: 100px;">
+                @Html.LayuiDropDownList("shopcatecode", curDtShopProductCateAll, "CateName", "CateCode", "", "", "-请选择-", "", new { name = "shopcatecode" })
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-inline">
+                @Html.LayUiSamllButton("搜索", "btnSearch")
+            </div>
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "add", LayerUiHtmlHelper.GetEvent("add"), LayUiButtonColor.Normal)
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "modify", LayerUiHtmlHelper.GetEvent("modify"), LayUiButtonColor.Normal)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "delete", LayerUiHtmlHelper.GetEvent("delete"), LayUiButtonColor.Danger)
+}
+
+@section MainBottom
+{
+    <script>
+
+        var curRetDoCmd = "";
+        var nullimg = "/style/mobile/renterp/img/nopic.jpg";
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.shopcatecode = $("#shopcatecode").val();
+                sWhere.productname = $("#productname").val();
+                sWhere.artno = $("#artno").val();
+                sWhere.isdeleted = $("#isdeleted").val();
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+            
+            //缩略图
+            var colfmt_thumbnail = function (d) {
+                var url = $.isEmptyObject(d.mainimage) ? nullimg : d.mainimage;
+                var str = "<img class='rowImg' src='" + url + "' style='width:25px;height:25px;border:1px solid #ccc;padding:1px;margin:0px;cursor:pointer;'>";
+                return str;
+            }
+
+            
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' },
+                    { field: 'mainimage', width: 80, title: '缩略图', templet: colfmt_thumbnail },
+                    { field: 'productname', title: '产品名称' },
+                    { field: 'unit', width: 80, title: '单位' },
+                    { field: 'shopcatename', width: 100, title: '产品分类' },
+                    { field: 'createdatetime', width: 160, title: '创建时间' },
+                    { field: 'productorder', width: 80, title: '排序值' },
+                    { width: 130, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+
+
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    curRetDoCmd = "";
+                    var productcode = rowData.productcode;
+                    var sUrl = "@curController/detail?docmd=modify&productcode=" + productcode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("修改产品信息", sUrl, '100%', '100%', function () {
+                        if (curRetDoCmd == "101") {
+                            reloadData();
+                        }
+                    });
+
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var productcode = rowData.productcode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.productcode = productcode;
+
+                        adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 103) {
+                                //关闭对话框
+                                layer.close(index);
+
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                            }
+                        }, function () { });
+
+                    });
+                } else if (row.event == "changestate") {
+                    var param = { productcode: rowData.productcode };
+                    var sUrl = "@curController/execute?docmd=changestate";
+                    var loadIndex = layer.load();
+                    var successHandler = function (retData) {
+                        layer.close(loadIndex);
+                        console.log(retData);
+                        reloadData();
+                    }
+                    var errorHandler = function () { layer.msg("网络访问异常"); }
+                    adfCommon.ajaxAsyncPost(sUrl, param, successHandler, errorHandler);
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                curRetDoCmd = "";;
+                adfCommon.dlgOpen("增加产品信息", sUrl, '100%', '100%', function () {
+                    if (curRetDoCmd == "100") {
+                        reloadData();
+                    }
+                });
+            });
+
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+
+            //批量处理SKU规格丢失问题
+            $("#btnUpdateProductSpec").click(function () {
+                var param = {};
+                param.t = new Date().getTime();
+                var loadIndex = layer.load();
+                var successHandler = function (d) {
+                    layer.close(loadIndex);
+                    console.log(d);
+                    if (d.RetStatus == 400) {
+                        layer.msg(d.RetValue);
+                        return false;
+                    }
+                    layer.alert(d.RetValue);
+                }
+                var errorHandler = function () {
+                    layer.close(loadIndex);
+                    layer.msg("网络访问异常");
+                }
+                var opts = {
+                    url: "@curController/UpdateProductSpec",
+                    data: param,
+                    type: "post",
+                    dataType: "json",
+                    cache: false,
+                    success: successHandler,
+                    error: errorHandler
+                }
+                $.ajax(opts);
+                return false;
+            });
+
+        });
+
+
+        function viewImg(e) {
+            layui.use(['layer'], function () {
+                var layer = layui.layer;
+                var imgurl = e.attr("src");
+                if (imgurl == "" || imgurl == nullimg) {
+                    layer.msg("请先上传图片");
+                    return false;
+                }
+                top.layer.open({
+                    area: ['90%', '90%'],
+                    content: '<img src="' + imgurl + '" />'
+                });
+            });
+        }
+
+        //放大查看产品主图及多图
+        $("body").on("click", ".rowImg", function () {
+            var e = $(this);
+            viewImg(e);
+        });
+
+    </script>
+}

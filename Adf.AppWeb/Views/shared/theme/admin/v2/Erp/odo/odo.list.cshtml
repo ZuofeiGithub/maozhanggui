@@ -1,0 +1,134 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/renterp/odo";
+
+
+    //自定义参数
+    
+}
+
+@section MainHeader
+{
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">发货时间起:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("datefrom","datefrom")
+         </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">发货时间至:</label>
+        <div class="layui-inline">
+             @Html.LayUiInput("dateto","dateto")
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索","btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "view",LayerUiHtmlHelper.GetEvent("view"),LayUiButtonColor.Normal)
+}
+
+@section MainBottom
+{
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function() {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.datefrom = $("#datefrom").val();
+                sWhere.dateto = $("#dateto").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+            /*表格信息*/
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'createdatetime', width: 200, title: '发货时间' }
+                    , { field: 'deliverusername', width: 150, title: '发货人' }
+                    , { field: 'takeusername', width: 150, title: '收货人' }
+                    , { field: 'taketelphone',  title: '收货联系电话' }
+                    , { width: 110, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function(row) {
+                var rowData = row.data;
+                if (row.event == 'view') {
+                    curRetDoCmd = "";
+                    var socode = rowData.odocode;
+                    var sUrl = "@curController/detail?docmd=view&odocode=" + socode;
+                    adfCommon.dlgOpen("发货明细", sUrl, '100%', '100%', function () {
+                        if (curRetDoCmd == "101") {
+                            reloadData();
+                        }
+                    });
+
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function() {
+                reloadData();
+            });
+
+        });
+
+    </script>
+}
+
+
+
+

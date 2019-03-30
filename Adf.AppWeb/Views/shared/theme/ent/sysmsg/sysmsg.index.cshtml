@@ -1,0 +1,251 @@
+﻿@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@using Adf.FrameWork.Service.LayUi
+@{
+    //2018.10.20 创建 侯鑫辉
+    //系统公告列表页
+
+    /*系统参数*/
+    Layout = "../master/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*页面参数*/
+    String curController = "/ent/sysmsg";
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">消息标题:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "msgtitle" })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">发送状态:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdSelect(new LayUiSelectAttr()
+       {
+           Id = "msgstatus",
+           Name = "msgstatus",
+           Texts = "全部|未发送|已发送",
+           Values = "|0|1",
+           Val = ""
+       })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "增加",
+    ClassName = "add",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "add" }
+})
+}
+
+@section MainTableRowTool
+{
+    {{# if(d.msgstatus == "0"){ }}
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "修改",
+    ClassName = "modify",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "modify" }
+})
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "发送",
+    ClassName = "send",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "send" }
+})
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "删除",
+    ClassName = "delete",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Danger,
+    ExtHtmlAttributes = new { lay_event = "delete" }
+})
+    {{#  }else{ }}
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "查看",
+    ClassName = "view",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "view" }
+})
+    {{#  } }}
+}
+
+@section MainBottom
+{
+    <script>
+        var curRetDoCmd = "";
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'],
+            function() {
+                var table = layui.table,
+                    layer = layui.layer,
+                    element = layui.element,
+                    adfCommon = layui.adfCommon;
+
+                /*函数*/
+                //重新加载数据
+                function reloadData() {
+                    //查询条件
+                    var sWhere = {};
+                    sWhere.msgtitle = escape($("#msgtitle").val());
+                    sWhere.msgstatus = escape($("#msgstatus").val());
+
+                    //重新加载
+                    adfCommon.reloadStdTable(table, sWhere);
+                }
+
+                var colfmt_msgstatus = function(d) {
+                    var str = "";
+                    if (d.msgstatus == "0") {
+                        str = "<span style='color:red;'>未发送</span>";
+                    } else if (d.msgstatus == "1") {
+                        str = "<span style='color:green;'>已发送</span>";
+                    }
+                    return str;
+                }
+
+                /*表格信息*/
+                //列
+                var colInfo = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'msgtitle', title: '消息标题' },
+                        { field: 'msgcontent', title: '消息内容' },
+                        { field: 'createdatetime', title: '创建时间' },
+                        { field: 'msgstatus', title: '发送状态', templet: colfmt_msgstatus },
+                        { width: 200, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                    ]
+                ];
+
+                //数据（通过控制器找到getlistdata方法 获取数据）
+                var dataUrl = "@curController/getlistdata";
+
+                //页面显示20条信息
+                var pageSize = 20;
+
+                //初始查询条件
+                var sWhere = {};
+
+                //初始化
+                adfCommon.setStdTable(table,
+                    colInfo,
+                    dataUrl,
+                    pageSize,
+                    sWhere,
+                    function(row) {
+                        var rowData = row.data;
+                        if (row.event == 'modify') {
+                            curRetDoCmd = "";
+                            var msgcode = rowData.msgcode;
+                            var sUrl = "@curController/detail?docmd=modify&mccode=@curGlobalModuleCode&msgcode=" +
+                                msgcode;
+                            adfCommon.dlgOpen("修改信息",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function () {
+                                    if (curRetDoCmd == "101") {
+                                        reloadData();
+                                    }
+                                });
+                        } else if (row.event == 'send') {
+                            curRetDoCmd = "";
+                            var msgcode = rowData.msgcode;
+                            var sUrl = "@curController/detail?docmd=send&mccode=@curGlobalModuleCode&msgcode=" +
+                                msgcode;
+                            adfCommon.dlgOpen("选择角色",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {
+                                    if (curRetDoCmd == "100") {
+                                        reloadData();
+                                    }
+                                });
+                        } else if (row.event == 'view') {
+                            curRetDoCmd = "";
+                            var msgcode = rowData.msgcode;
+                            var sUrl = "@curController/detail?docmd=view&mccode=@curGlobalModuleCode&msgcode=" +
+                                msgcode;
+                            adfCommon.dlgOpen("查看信息",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {});
+                        }else if (row.event == 'delete') {
+                            layer.confirm('确认要删除吗?',
+                                function(index) {
+                                    var msgcode = rowData.msgcode;
+                                    var sUrl = "@curController/execute?docmd=delete";
+                                    var param = {};
+                                    param.msgcode = msgcode;
+                                    //post提交
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function(retData) {
+                                            adfCommon.alert(retData.RetValue);
+                                            if (retData.RetStatus == 103) {
+                                                //关闭对话框
+                                                layer.close(index);
+                                                //数据库删除成功后,在界面上进行删除.
+                                                row.del();
+                                            }
+                                        },
+                                        function() {});
+                                });
+                        }
+                    });
+
+                /*事件*/
+                $(".btnSearch").click(function () {
+                    reloadData();
+                });
+
+                //增加
+                $(".add").click(function() {
+                    var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                    curRetDoCmd = "";;
+                    adfCommon.dlgOpen("增加信息",
+                        sUrl,
+                        '100%',
+                        '100%',
+                        function() {
+                            if (curRetDoCmd == "100") {
+                                reloadData();
+                            }
+                        });
+                });
+            });
+    </script>
+}

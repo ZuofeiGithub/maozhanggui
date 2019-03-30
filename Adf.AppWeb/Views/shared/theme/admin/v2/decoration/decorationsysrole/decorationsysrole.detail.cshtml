@@ -1,0 +1,149 @@
+﻿@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@using Decoration.Service
+@{
+    /*
+   * 功能：平台角色详细页
+   * 创建人：张硕
+   * 创建时间：2018-11-13
+   * /
+    /*系统参数*/
+    Layout = "~/Views/shared/theme/admin/master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*当前业务*/
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/manage/decorationsysrolemng";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+
+    //编号是否可修改
+    bool isTrue = false;
+    if (curDoCmd == "modify") {
+        isTrue = true;
+    }
+
+    string txtRoles = ViewBag.txtRoles; //前端提醒角色名称
+    string valRoles = ViewBag.valRoles; //前端提醒角色值
+    string valSelRoles = ViewBag.valSelRoles;
+
+}
+
+@section FormButton
+{
+   @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save", "btnSubmit", LayUiButtonTheme.Danger)
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭", LayUiButtonTheme = LayUiButtonTheme.Normal })
+}
+
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md7" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "角色编码" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "rolecode", Val = curDrMainEntity.Get("rolecode", ""), VerifyName = "required", PlaceHolder = "请输入角色编码", IsReadOnly= isTrue })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md7" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "角色名称" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "rolename", Val = curDrMainEntity.Get("rolename", ""), VerifyName = "required", PlaceHolder = "请输入角色名称" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md7" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "排序" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "roleorder", Val = curDrMainEntity.Get("roleorder", "0"), VerifyName = "required", PlaceHolder = "请输入排序" })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md12" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "可提醒角色" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdCheckGroup(new LayUiCheckBoxGroupAttr()
+               {
+                   Name = "tiproles",
+                   Texts = txtRoles,
+                   Values = valRoles,
+                   Vals = valSelRoles
+               })
+                }
+            }
+        }
+
+
+    }
+  
+
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon','upload'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                upload = layui.upload,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+
+            });
+            //保存
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                var tiproles = [];           
+                $("input:checkbox[name='tiproles']:checked").each(function () {
+                    var rolecode = $(this).val();
+                    tiproles.push(rolecode);
+                });            
+                param.tiproles = tiproles.join(",");              
+                adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            //关闭
+            $("#btnClose").click(function() {adfCommon.dlgClose();});
+        });
+    </script>
+
+}

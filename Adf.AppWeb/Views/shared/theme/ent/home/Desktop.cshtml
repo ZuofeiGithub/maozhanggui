@@ -1,0 +1,172 @@
+﻿@using CYQ.Data.Table
+@{
+    /*@*****************************************************************************************
+    * 2018-01-18 创建 郑金国 <br />
+    * 2018-01-18 修改 郑金国
+    ******************************************************************************************@*/
+
+    /*系统参数*/
+    Layout = null;
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    /*页面参数*/
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>控制台主页一</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="@curGlobalAdminResPath/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="@curGlobalAdminResPath/layuiadmin/style/admin.css" media="all">
+    <!-- 让IE8/9支持媒体查询，从而兼容栅格 -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+      <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md6">
+                        <div class="layui-card">
+                            <div class="layui-card-header">快捷方式</div>
+                            <div class="layui-card-body">
+
+                                <div class="layui-carousel layadmin-carousel layadmin-shortcut">
+                                    <div carousel-item>
+                                        <ul class="layui-row layui-col-space10">
+                                            <li class="layui-col-xs3">
+                                                <a lay-href="/ent/CompanyUser?mccode=000100002001">
+                                                    <i class="layui-icon layui-icon-user"></i>
+                                                    <cite>用户管理</cite>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs3">
+                                                <a lay-href="/ent/project?mccode=000100003001">
+                                                    <i class="layui-icon layui-icon-component"></i>
+                                                    <cite>项目管理</cite>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs3">
+                                                <a lay-href="/ent/Product?mccode=000100004002">
+                                                    <i class="layui-icon layui-icon-app"></i>
+                                                    <cite>产品管理</cite>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs3">
+                                                <a lay-href="/ent/Activity?mccode=000100005001">
+                                                    <i class="layui-icon layui-icon-chat"></i>
+                                                    <cite>活动推送</cite>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs3">
+                                                <a lay-href="/ent/SysMsg?mccode=000100006001">
+                                                    <i class="layui-icon layui-icon-read"></i>
+                                                    <cite>系统公告</cite>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs3">
+                                                <a lay-href="/Ent/AdminCompanyUser/MyInfo">
+                                                    <i class="layui-icon layui-icon-tree"></i>
+                                                    <cite>基本资料</cite>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs3">
+                                                <a lay-href="/ent/Company/UserWithCompany?mccode=000100001002">
+                                                    <i class="layui-icon layui-icon-set"></i>
+                                                    <cite>公司信息</cite>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs3">
+                                                <a lay-href="/Ent/AdminCompanyUser/ModifyPwd">
+                                                    <i class="layui-icon layui-icon-password"></i>
+                                                    <cite>修改密码</cite>
+                                                </a>
+                                            </li>
+                                        </ul>
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-md6">
+                        <div class="layui-card">
+                            <div class="layui-card-header">数据统计</div>
+                            <div class="layui-card-body">
+
+                                <div class="layui-carousel layadmin-carousel layadmin-backlog">
+                                    <div carousel-item>
+                                        @{
+                                            int curProjectCount = ViewBag.curProjectCount ?? 0;
+                                            int curTaskCount = ViewBag.curTaskCount ?? 0;
+                                            int curActivityCount = ViewBag.curActivityCount ?? 0;
+                                            int curCompanyUserCount = ViewBag.curCompanyUserCount ?? 0;
+                                        }
+                                        <ul class="layui-row layui-col-space10">
+                                            <li class="layui-col-xs6">
+                                                <a href="javascript:;" class="layadmin-backlog-body">
+                                                    <h3>项目总数</h3>
+                                                    <p><cite>@curProjectCount</cite></p>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs6">
+                                                <a href="javascript:;" class="layadmin-backlog-body">
+                                                    <h3>任务总数</h3>
+                                                    <p><cite>@curTaskCount</cite></p>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs6">
+                                                <a href="javascript:;" class="layadmin-backlog-body">
+                                                    <h3>活动总数</h3>
+                                                    <p><cite>@curActivityCount</cite></p>
+                                                </a>
+                                            </li>
+                                            <li class="layui-col-xs6">
+                                                <a href="javascript:;" class="layadmin-backlog-body">
+                                                    <h3>企业人数</h3>
+                                                    <p><cite>@curCompanyUserCount</cite></p>
+                                                </a>
+                                            </li>
+                                        </ul>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-hide">
+                <span>欢迎使用装企管家通-企业端</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="@curGlobalAdminResPath/layui/layui.js?t=1"></script>
+    <script>
+			layui.config({
+			    base: '@curGlobalAdminResPath/layuiadmin/' //静态资源所在路径
+			}).extend({
+				index: 'lib/index' //主入口模块
+			}).use(['index', 'console']);
+    </script>
+</body>
+
+</html>

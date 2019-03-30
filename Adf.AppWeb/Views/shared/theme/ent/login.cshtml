@@ -1,0 +1,128 @@
+﻿@using CYQ.Data.Table
+@{
+
+    /*@*****************************************************************************************
+ * 2018-01-18 创建 郑金国 <br />
+ * 2018-01-18 修改 郑金国 
+ ******************************************************************************************@*/
+
+    //系统参数
+
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalLoginResPath = ViewBag.GlobalLoginResPath ?? "";
+    String curGlobalLoginViewPath = ViewBag.GlobalLoginViewPath ?? "";
+
+    Layout = curGlobalLoginViewPath +  "master/master.cshtml";
+}
+
+@section BaseHeader
+{
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layui/css/layui.css" />
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layuiadmin/style/login.css" media="all">
+    <link rel="stylesheet" href="@curGlobalLoginResPath/css/adf-layui.css" media="all"/>
+}
+
+@section BaseBody
+{
+    		<div class="layadmin-user-login layadmin-user-display-show" id="LAY-user-login">
+			<div class="layadmin-user-login-main" style="position: absolute;top: 50%;left: 50%;margin-left: -185px;margin-top: -276px;">
+			    <div class="layadmin-user-login-box layadmin-user-login-header">
+                    <img src="/Style/v2/img/logo.png" />
+			        <span style="font-size: 12px; font-family: '宋体'; position: absolute; top: 25px; right: 40px;line-height: 20px; display: inline-block; color: #fff; padding: 0 5px; border-radius: 5px; border: 1px solid #fff;">企业端</span>
+			    </div>
+				<div class="layadmin-user-login-box layadmin-user-login-body layui-form">
+					<div class="layui-form-item">
+						<label class="layadmin-user-login-icon layui-icon layui-icon-username" for="LAY-user-login-username"></label>
+						<input type="text" name="userCode" id="LAY-user-login-username" lay-verify="required" placeholder="用户名" class="layui-input">
+					</div>
+					<div class="layui-form-item">
+						<label class="layadmin-user-login-icon layui-icon layui-icon-password" for="LAY-user-login-password"></label>
+						<input type="password" name="userPassword" id="LAY-user-login-password" lay-verify="pass" placeholder="密码" class="layui-input">
+					</div>
+                    <div class="layui-form-item" style="margin-bottom: 20px;">
+						<input type="checkbox" name="remember" lay-skin="primary" title="记住密码">
+@*						<a href="forget.html" class="layadmin-user-jump-change layadmin-link adf-link" style="margin-top: 7px;">忘记密码？</a>*@
+					</div>
+					<div class="layui-form-item">
+						<button id="btnLogin" class="layui-btn layui-btn-normal layui-btn-fluid" lay-submit lay-filter="LAY-user-login-submit">登 入</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="layui-trans layadmin-user-login-footer">
+				<p> <a href="@Html.Raw(curGlobalApp.Get("servicecompanyUrl",""))" target="_blank">@curGlobalApp.Get("CompanyName","")</a> &copy; @DateTime.Today.Year </p>
+			</div>
+		</div>
+
+}
+
+@section BaseBottom
+{
+    <script src="@curGlobalLoginResPath/layui/layui.js"></script>
+    <script>
+        layui.config({
+            base: '@curGlobalLoginResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function() {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon,
+                $ = layui.$;
+
+
+            //自定义验证
+            form.verify({
+
+                //定义验证方法
+                nickname: function(value, item) { //value：表单的值、item：表单的DOM对象
+                    if (!new RegExp("^[a-zA-Z0-9_\u4e00-\u9fa5\\s·]+$").test(value)) {
+                        return '用户名不能有特殊字符';
+                    }
+                    if (/(^\_)|(\__)|(\_+$)/.test(value)) {
+                        return '用户名首尾不能出现下划线\'_\'';
+                    }
+                    if (/^\d+\d+\d$/.test(value)) {
+                        return '用户名不能全为数字';
+                    }
+                }
+
+                //我们既支持上述函数式的方式，也支持下述数组的形式
+                //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+                ,
+                pass: function(value, item) {
+                    if (value == "") {
+                        return "密码不能为空";
+                    }
+                }
+            });
+
+            //提交表单
+            form.on('submit(LAY-user-login-submit)', function(obj) {
+
+                var sUrl = "/ent/login/check";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function(retData) {
+                    if (retData.RetStatus == 100) {
+                        layer.msg('登入成功,正在转向中...', {
+                            offset: '15px',
+                            icon: 1,
+                            time: 500
+                        }, function() {
+                            location.href = '/ent/home/index'; //后台主页
+                        });
+                    } else {
+                        adfCommon.alert(retData.RetValue);
+                    }
+                }, function() {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+        });
+
+    </script>
+}

@@ -1,0 +1,360 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/erp/FreightTemplate";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    //模板所有的运费规则
+    MDataTable curDtAllFreightAreaContent = ViewBag.DtAllFreightAreaContent ?? new MDataTable();
+    
+}
+
+@section MainHeader
+{
+
+}
+
+
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "模板名称" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "freighttemplatename", Val = curDrMainEntity.Get("freighttemplatename", ""), VerifyName = "required" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "发货地点" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InLine }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "ProductAddressName", Val = curDrMainEntity.Get("ProductAddressName", ""), VerifyName = "required" })
+                }
+                @Html.ExHidden("ProductAddressCode",curDrMainEntity.Get("ProductAddressCode", ""))
+                @Html.LayUiStdButtonSmall(new LayUiButtonAttr(){Id = "btnSelectProductAddressCode",Caption = "选择"})
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "发货时间" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { DataType = "dic", DicCode = "SendTimeType", Id = "SendTimeDesc", Val = curDrMainEntity.Get("SendTimeDesc", "") })
+                }
+            }
+        }
+    
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md6"}))
+        {
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "计价方式" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { DataType = "dic", DicCode = "ValuationWay", Id = "ValuationWay", Val = curDrMainEntity.Get("ValuationWay", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+         
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "运费方式" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { DataType = "dic", DicCode = "ShippingWay", Id = "ShippingWay", Val = curDrMainEntity.Get("ShippingWay", "") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md6"}))
+        {
+
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "是否免邮"})
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputBlock}))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() {Id = "IsFree", Val = curDrMainEntity.Get("IsFree", ""), Texts = "-选择-|买家承担|卖家承担", Values = "-1|0|1"})
+                }
+            }
+        }
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md6"}))
+        {
+
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "排序"})
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputBlock}))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() {Id = "infoorder", Val = curDrMainEntity.Get("infoorder", ""),Name="infoorder"})
+                }
+            }
+        }
+    }
+
+
+    
+    @{
+        //如果有默认值时，将默认值取出
+        MDataTable curDefaultRule = curDtAllFreightAreaContent.Select("IsDefault=1");
+        decimal curFirstUnit = 0;
+        decimal curFirstUnitMoney = 0;
+        decimal curAccumulationUnit = 0;
+        decimal curAccumulationUnitMoney = 0;
+        if (curDefaultRule != null && curDefaultRule.Rows.Count > 0)
+        {
+            curFirstUnit = curDefaultRule.Rows[0].Get<decimal>("FirstUnit", 0);
+            curFirstUnitMoney = curDefaultRule.Rows[0].Get<decimal>("FirstUnitMoney", 0);
+            curAccumulationUnit = curDefaultRule.Rows[0].Get<decimal>("AccumulationUnit", 0);
+            curAccumulationUnitMoney = curDefaultRule.Rows[0].Get<decimal>("AccumulationUnitMoney", 0);
+        }
+    }
+
+                <div class="layui-tab">
+                    <ul class="layui-tab-title">
+                        <li class="layui-this">运费规则</li>
+                    </ul>
+
+                    <div class="layui-tab-content">
+                        <div class="layui-tab-item layui-show">
+                                    <blockquote class="layui-elem-quote">默认运费</blockquote>
+        <table class="layui-table">
+            <tr>
+                <td>
+                    首件数量 @Html.LayUiStdInput(new LayUiInputAttr() { Name = "FirstUnit[]", Val = curFirstUnit.ToString(),ClassName = "adf-width80px"})
+                </td>
+                <td>
+                    首件金额 @Html.LayUiStdInput(new LayUiInputAttr() { Name = "FirstUnitMoney[]", Val = curFirstUnitMoney.ToString(),ClassName = "adf-width80px" })
+                </td>
+                <td>
+                     每增加数量 @Html.LayUiStdInput(new LayUiInputAttr() { Name = "AccumulationUnit[]", Val = curAccumulationUnit.ToString(),ClassName = "adf-width80px" })
+                </td>
+                <td>
+                     增加运费 @Html.LayUiStdInput(new LayUiInputAttr() { Name = "AccumulationUnitMoney[]", Val = curAccumulationUnitMoney.ToString(),ClassName = "adf-width80px" })
+                    @Html.ExHidden("", "1", "IsDefault[]")
+                    @Html.ExHidden("", "-", "AreaCodes[]")
+                    @Html.ExHidden("", "-", "AreaNames[]")
+                </td>
+            </tr>
+        </table>
+                            <blockquote class="layui-elem-quote">地区规则</blockquote>
+                                    <table class="layui-table" id="FreightArea">
+            <thead>
+            <tr>
+                <td colspan="2">目标地区</td>
+                <td style="width: 100px;">首件</td>
+                <td style="width: 100px;">首费</td>
+                <td style="width: 100px;">续件</td>
+                <td style="width: 100px;">续费</td>
+            </tr>
+            <tr>
+                <td colspan="6"><input type="button" id="btnAddArea" value="增加规则"/></td>
+            </tr>
+            </thead>
+            <tbody id="AreaContents">
+            @{
+                int iIndex = 0;
+                MDataTable curDtAreaRules = curDtAllFreightAreaContent.Select("IsDefault <> 1");
+                foreach (MDataRow dataRow in curDtAreaRules.Rows)
+                {
+                    <tr id="ac-@(iIndex++)">
+                        <td>
+                            <span class="AreaInfo">@dataRow.Get("areanames", "")</span>
+                            <input name="AreaCodes[]" value="@dataRow.Get("areacodes", "")" type="hidden"/>
+                            <input name="AreaNames[]" value="@dataRow.Get("areanames", "")" type="hidden"/>
+                            <input type="hidden" value="0" name="IsDefault[]"/>
+                        </td>
+                        <td style="width: 100px;"><input type="button" value="编辑" class="btnEdit"/><input type="button" value="删除" class="btnDelete"/></td>
+
+                        <td style="width: 100px;"><input class="layui-input" type="text" value="@dataRow.Get("firstunit", "")" name="FirstUnit[]"/></td>
+                        <td style="width: 100px;"><input class="layui-input" type="text" value="@dataRow.Get("firstunitmoney", "")" name="FirstUnitMoney[]"/></td>
+                        <td style="width: 100px;"><input class="layui-input" type="text" value="@dataRow.Get("accumulationunit", "")" name="AccumulationUnit[]"/></td>
+                        <td style="width: 100px;"><input class="layui-input" type="text" value="@dataRow.Get("accumulationunitmoney", "")" name="AccumulationUnitMoney[]"/></td>
+                    </tr>
+                }
+            }
+            </tbody>
+
+        </table>
+        <script type="text/plain" id="tplAreaContent">
+            <tr id="ac-{curIndex}">
+                <td style="width:200px">
+            <span class="AreaInfo"></span>
+            <input name="AreaCodes[]" value="" type="hidden" />
+            <input name="AreaNames[]" value="" type="hidden" />
+            <input type="hidden" value="0" name="IsDefault[]" />
+                </td>
+            <td  style="width:100px"><input type="button" value="编辑" class="btnEdit"  /><input type="button" value="删除" class="btnDelete" /></td>
+                <td><input type="text" value="" name="FirstUnit[]" /></td>
+                <td><input type="text" value="" name="FirstUnitMoney[]" /></td>
+                <td><input type="text" value="" name="AccumulationUnit[]" /></td>
+                <td><input type="text" value="" name="AccumulationUnitMoney[]" /></td>
+            </tr>
+        </script>
+
+                            
+                        </div>
+                    </div>
+
+                </div>
+
+
+    @Html.ExHidden("freighttemplatecode", curDrMainEntity.Get("freighttemplatecode", ""))
+    @Html.ExHidden("detailCount", "0")
+
+}
+
+
+@section FormButton{
+     @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Id = "btnClose",
+    Caption = "关闭",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal
+})
+}
+
+
+@section MainBottom
+{
+    <script>
+        var curAllIndex = @(curDtAllFreightAreaContent.Rows.Count);
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+
+            //自定义验证
+            form.verify({
+               
+                brandname: function (value, item) {
+                    if (value === "") {
+                        return "品牌名称不能为空";
+                    }
+                }
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var detailCount = $("#AreaContents>tr").length;
+                //alert(detailCount);
+                //默认运费 + 运费规则
+                //$("#detailCount").val(detailCount + 1);
+
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                param.detailCount = detailCount + 1;
+               
+                
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    console.log(retData);
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus !=400) {
+                            //刷新父级数据
+                            //parent.curRetDoCmd = retData.RetStatus;
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            //增加地区规则 
+            $("#btnAddArea").click(function () {
+                curAllIndex++;
+                var sContent = $("#tplAreaContent").html();
+                sContent = sContent.replace("{curIndex}", curAllIndex);
+
+                $("#AreaContents").append(sContent);
+                form.render();
+            });
+
+            //选择发货地点
+            $("#btnSelectProductAddressCode").click(function () {
+                var sTitle = "选择地点";
+                var sUrl = "/manage/area/loadareaonetree";
+
+                adfCommon.dlgOpen(sTitle,sUrl,"90%","90%",function() {
+                    //$("#leaderusercode").val(globalData.usercode);
+                    //$("#leaderusername").val(globalData.username);
+                    var curAreaNode = globalData.AreaNode;
+                    alert(curAreaNode.areaname);
+                    $("#ProductAddressName").val(curAreaNode.areaname);
+                    $("#ProductAddressCode").val(curAreaNode.areacode);
+
+                });
+            });
+
+            $(function() {
+                $("body").on("click",".btnEdit",function() {
+                    //alert("x");
+                    var that = this;
+                    var curAreaCodes = $($(that).parent().parent().find("input[name='AreaCodes[]']")[0]).val();
+                    var curAreaNames = $($(that).parent().parent().find("input[name='AreaNames[]']")[0]).val();
+                    var sTitle = "选择地区";
+                    var sUrl = "/manage/area/loadareatree";
+                    globalData.AreaCodes = curAreaCodes;
+                    globalData.AreaNames = curAreaNames;
+                    adfCommon.dlgOpen(sTitle,sUrl,"90%","90%",function() {
+                        //$("#leaderusercode").val(globalData.usercode);
+                        //$("#leaderusername").val(globalData.username);
+                        $($(that).parent().parent().find(".AreaInfo")[0]).html(globalData.AreaNames);
+                        $($(that).parent().parent().find("input[name='AreaCodes[]']")[0]).val(globalData.AreaCodes);
+                        $($(that).parent().parent().find("input[name='AreaNames[]']")[0]).val(globalData.AreaNames);
+                    });
+                });
+                $("body").on("click",".btnDelete",function() {
+                    $(this).parent().parent().remove();
+                    return false;
+                });
+            });
+            
+        });
+
+
+    </script>
+}

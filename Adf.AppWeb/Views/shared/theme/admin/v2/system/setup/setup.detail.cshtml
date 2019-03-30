@@ -1,0 +1,240 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.single.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/manage/setup";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+    
+}
+
+@section MainHeader
+{
+    <style type="text/css">
+
+.layui-form-label {
+    width: 100px;
+}       
+    .layui-input-block {
+        margin-left: 130px;
+    } 
+    </style>
+
+}
+
+@section MainTitle{
+    平台配置
+}
+
+@section FormBody
+{
+
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.Row}))
+     {
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md6"}))
+         {
+
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "平台编码"})
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "appcode", Val = curDrMainEntity.Get("appcode", ""), VerifyName = "required" })
+                 }
+             }
+         }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "平台名称" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "appname", Val = curDrMainEntity.Get("appname", ""), VerifyName = "required" })
+                 }
+
+             }
+         }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "平台Logo" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "applogo", Val = curDrMainEntity.Get("applogo", "") })
+                 }
+
+             }
+         }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "应用目录" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "appdir", Val = curDrMainEntity.Get("appdir", "") })
+                 }
+
+             }
+         }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "公司名称" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "companyname", Val = curDrMainEntity.Get("companyname", "") })
+                 }
+             }
+         }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "服务电话" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "serivetelphone", Val = curDrMainEntity.Get("serivetelphone", "") })
+                 }
+             }
+         }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "公司地址" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "servicecompanyUrl", Val = curDrMainEntity.Get("servicecompanyUrl", "") })
+                 }
+             }
+         }
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "PC登录主题" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "pcloginthemecode", Val = curDrMainEntity.Get("pcloginthemecode", "") })
+                 }
+             }
+         }
+
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "移动登录主题" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "mobileloginthemecode", Val = curDrMainEntity.Get("mobileloginthemecode", "") })
+                 }
+             }
+         }
+
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "PC管理主题" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                     @Html.LayUiStdInput(new LayUiInputAttr() { Id = "pcadminthemecode", Val = curDrMainEntity.Get("pcadminthemecode", "") })
+                 }
+             }
+         }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "移动管理主题" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "mobileadminthemecode", Val = curDrMainEntity.Get("mobileadminthemecode", "") })
+                 }
+             }
+         }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+         {
+             using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+             {
+                 @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "是否默认" })
+                 using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                 {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "isdefault", Texts = "否|是", Values = "0|1", Val = curDrMainEntity.Get("isdefault", "") })
+                 }
+             }
+         }
+     }
+}
+
+@section MainTool
+{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+                
+
+            //自定义验证
+            form.verify({
+                
+
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        location.href = "/manage/setup?mccode=@curGlobalModuleCode";
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+        });
+    </script>
+}
+
+

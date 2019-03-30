@@ -1,0 +1,70 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.select.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/erp/sku";
+
+}
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'artno', width: 120, sort: true, title: '货号' }
+                , { field: 'productname', width: 120, sort: true, title: '产品名称' }
+                , { field: 'color', width: 120, title: '颜色' }
+                , { field: 'size', width: 120, title: '尺寸' }
+                , { field: 'spec', width: 120, title: '规格' }
+                , { field: 'saleprice', width: 120, title: '销售价' }
+                , { field: 'stocknum', width: 120, title: '库存数' }
+            ]
+        ];
+
+        //数据Url
+        cfg_DataUrl = "@curController/GetListDataInitial";
+
+        //选择多列
+        cfg_isMultiy = 1;
+
+    </script>
+}
+
+@section WhereInfo
+{
+    cfg_Where.rolecode = $("#rolecode").val();
+    cfg_Where.rolename = $("#rolename").val();
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">货号:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("artno","artno")
+         </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">产品:</label>
+        <div class="layui-inline">
+             @Html.LayUiInput("productname","productname")
+        </div>
+    </div>
+
+}

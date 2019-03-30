@@ -1,0 +1,129 @@
+﻿@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@using Decoration.Service
+@{
+
+    /******************************************************************************************
+     * 功能：项目详细页
+     * 2018-10-18  创建人 顾健
+     *******************************************************************************************/
+
+    /*系统参数*/
+    Layout = "../master/master.detail.cshtml";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    String curDoCmd = ViewBag.CurrentCmd;
+
+    /*当前业务*/
+    String curController = "/ent/taskcate";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+
+}
+
+<!--页面数据-->
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "分类名称" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "catename", Name = "catename", Val = curDrMainEntity.Get("catename", "") })
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "排序" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "cateorder", Name = "cateorder", Val = curDrMainEntity.Get("cateorder", "") })
+        }
+    }
+
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "开始时间" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "startdate", Name = "startdate", Val = DecorationService.Initdate(curDrMainEntity.Get("startdate", "")) })
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "结束时间" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "enddate", Name = "enddate", Val = DecorationService.Initdate(curDrMainEntity.Get("enddate", "")) })
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "阶段天数" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "days", Name = "days", Val = curDrMainEntity.Get("days", "") })
+        }
+    }
+    @Html.Hidden("projectcatecode", curDrMainEntity.Get("projectcatecode", ""))
+    @Html.Hidden("projectcode", curDrMainEntity.Get("projectcode", ""))
+    @Html.Hidden("catecode", curDrMainEntity.Get("catecode", ""))
+}
+
+<!--操作按钮-->
+@section FormButton
+{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save", "btnSubmit", LayUiButtonTheme.Danger)
+    <button class="save layui-btn-warm layui-btn" lay-filter="btnSubmit" lay-submit="">保存</button>
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭", LayUiButtonTheme = LayUiButtonTheme.Normal })
+}
+
+<!--js-->
+@section MainBottom
+{
+    <script>
+        layui.use('laydate',
+            function() {
+                var laydate = layui.laydate;
+                laydate.render({
+                    elem: "#startdate"
+                });
+                laydate.render({
+                    elem: "#enddate"
+                });
+            });
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'element', 'upload'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+            /*保存*/
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            /*关闭*/
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+        });
+    </script>
+}
+

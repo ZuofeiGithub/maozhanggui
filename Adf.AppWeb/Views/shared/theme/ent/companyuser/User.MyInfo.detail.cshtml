@@ -1,0 +1,138 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../master/master.single.cshtml";
+
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = "myinfo";
+    String curController = "/ent/admincompanyuser";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+
+    string usercode = curDrMainEntity.Get("usercode", "");
+    string sex = curDrMainEntity.Get("sex", "男");
+    string cellphone = curDrMainEntity.Get("cellphone", "");
+    string email = curDrMainEntity.Get("email", "");
+    string userremark = curDrMainEntity.Get("userremark", "");
+    String curRoles = ViewBag.roleNameStrs ?? "";
+    MDataRow dr = ViewBag.dr ?? new MDataRow();
+}
+
+@section MainHeader
+{
+
+}
+
+@section MainTitle{
+设置我的资料
+}
+
+@section FormBody
+{
+
+   
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">账号</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "uid", Val = dr.Get("uid", ""),  IsReadOnly = true })
+        </div>
+        <div class="layui-form-mid layui-word-aux">不可修改。一般用于后台登入名</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">姓名</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "username", Val = dr.Get("username", ""), VerifyName = "required" , IsReadOnly = true })
+        </div>
+    </div>
+   
+    <div class="layui-form-item">
+        <label class="layui-form-label">手机</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "cellphone", Val = dr.Get("cellphone", ""), IsReadOnly = true })
+        </div>
+    </div>
+   
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            @Html.LayUiStdTextArea(new LayUiTextAreaAttr()
+       {
+           Id = "userremark",
+           PlaceHolder = "请输入内容",
+           Val = dr.Get("remark", "")
+       })
+        </div>
+    </div>
+
+
+
+    @Html.Hidden("usercode", usercode)
+
+
+
+
+}
+
+@section MainTool
+{
+    @*@Html.LayUiSubmitButton("确认修改")
+    <button type="reset" class="layui-btn layui-btn-primary" id="btnReset">重新填写</button>*@
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function() {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+
+            });
+            //保存
+            form.on('submit(btnSubmit)',function (obj) {
+                var sUrl = "@curController/execute?docmd=UpdateWithAdmin";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl,
+                    param,
+                    function(retData) {
+                        adfCommon.msgDo(retData.RetValue,
+                            function() {
+                                if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                                    //刷新父级数据
+                                    parent.curRetDoCmd = retData.RetStatus;
+                                    //关闭当前窗口
+                                    adfCommon.dlgClose();
+                                }
+                            });
+                    },
+                    function() {
+                        adfCommon.alert("网络存在异常,请重试");
+                    });
+            });
+            $("#btnReset").on("click", function() {
+                location.href = "/manage/user/myinfo";
+            });
+        });
+    </script>
+}

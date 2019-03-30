@@ -1,0 +1,75 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.select.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/RentErp/MemberInfo";
+
+
+    //自定义参数
+
+}
+
+
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'membername', width: 120, sort: true, title: '会员名称' }
+               
+                , { field: 'cellphone', title: '会员手机号' }
+             
+            ]
+        ];
+
+        //数据Url
+        cfg_DataUrl = "@curController/getlistdata";
+
+    </script>
+}
+
+@section WhereInfo
+{
+    cfg_Where.nickname = $("#nickname").val();
+    cfg_Where.cellphone = $("#cellphone").val();
+}
+
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">会员名:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("nickname","nickname")
+         </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">会员手机号:</label>
+        <div class="layui-inline">
+             @Html.LayUiInput("cellphone","cellphone")
+        </div>
+    </div>
+
+}
+
+
+
+
+

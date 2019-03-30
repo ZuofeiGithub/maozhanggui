@@ -1,0 +1,219 @@
+﻿@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@using Decoration.Service
+@{
+    /*
+* 功能：平台任务
+* 创建人：张硕
+* 创建时间：2018-11-13
+* /
+/*系统参数*/
+    Layout = "~/Views/shared/theme/admin/master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*当前业务*/
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/manage/decorationsystaskmng";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+    //获取任务分类
+    MDataTable curTemplateTable = ViewBag.curTemplateTable ?? new MDataTable();
+    MDataTable curCateTable = ViewBag.curCateTable ?? new MDataTable();
+
+    string txtRoles = ViewBag.txtRoles; //前端提醒角色名称
+    string valRoles = ViewBag.valRoles; //前端提醒角色值
+    string valSelRoles = ViewBag.valSelRoles;
+}
+
+@section FormButton
+{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save", "btnSubmit", LayUiButtonTheme.Danger)
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭", LayUiButtonTheme = LayUiButtonTheme.Normal })
+}
+
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "任务名称" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "taskname", Val = curDrMainEntity.Get("taskname", ""), VerifyName = "required", PlaceHolder = "请输入任务名称" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "任务天数" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "taskdays", Val = curDrMainEntity.Get("taskdays", "0"), VerifyName = "required", PlaceHolder = "请输入任务天数" })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "所属平台模版" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "templatecode", DataType = "db", Val = curDrMainEntity.Get("templatecode", ""), DtSource = curTemplateTable, ValueFieldName = "templatecode", TextFieldName = "templatename", ExtHtmlAttributes = new { lay_filter = "templatecode" } });
+
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "任务类型" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "catecode", DataType = "db", Val = curDrMainEntity.Get("catecode", ""), DtSource = curCateTable, ValueFieldName = "catecode", TextFieldName = "catename" });
+
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md12" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "平台任务角色" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdCheckGroup(new LayUiCheckBoxGroupAttr()
+               {
+                   Name = "tiproles",
+                   Texts = txtRoles,
+                   Values = valRoles,
+                   Vals = valSelRoles
+               })
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "排序" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "taskorder", Val = curDrMainEntity.Get("taskorder", "0") })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md12" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "任务内容" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdTextArea(new LayUiTextAreaAttr() { Id = "taskremark", Name = "taskremark", Val = curDrMainEntity.Get("taskremark", ""), PlaceHolder = "" })
+                }
+            }
+        }
+
+    }
+    @Html.Hidden("taskcode", curDrMainEntity.Get("taskcode", ""))
+
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon','upload'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                upload = layui.upload,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+
+            });
+
+            //保存
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                var tiproles = [];
+                $("input:checkbox[name='tiproles']:checked").each(function () {
+                    var rolecode = $(this).val();
+                    tiproles.push(rolecode);
+                });
+                param.tiproles = tiproles.join(",");
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            //关闭
+            $("#btnClose").click(function () { adfCommon.dlgClose(); });
+
+
+            //联动，异步获取数据源
+            function getCommunityData(templatecode) {
+                var jsondata;
+                var sUrl = '@curController/execute?docmd=gettaskcate';
+                var param = {};
+                param.templatecode = templatecode;
+                adfCommon.ajaxSyncPost(sUrl, param, function (v) {
+                    jsondata = v;
+                }, function (e) {
+                    console.log(e);
+                });
+                return jsondata;
+            }
+
+            form.on('select(templatecode)', function (d) {
+                var templatecode = d.value;
+                var optionStr = "<option value=''>-请选择-</option>";
+                //异步获取数据源
+                var catecode = $("#catecode");
+                catecode.empty();
+                if (d.value == "") {
+                    catecode.append(optionStr);
+                    form.render("select");
+                    return;
+                }
+                var jsondata = getCommunityData(templatecode);
+              
+                catecode.append(optionStr);
+                if (jsondata.rowcount > 0) {
+                    for (var i = 0; i < jsondata.rowcount; i++) {
+                        var item = jsondata.rows[i];
+                        optionStr = "<option value=" + item.catecode + ">" + item.catename + "</option>";
+                        catecode.append(optionStr);
+
+                    }
+                }
+                form.render("select");//重新渲染
+            });
+        });
+    </script>
+
+}

@@ -1,0 +1,270 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/inventory";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+    
+}
+
+@section MainHeader
+{
+
+}
+
+@section FormBody
+{
+
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-card-header-title">盘点单</div>
+            </div>
+            <div class="layui-card-body" style="padding: 24px;">
+                <div class="layui-row layui-col-space30">
+
+                    <div class="layui-col-md4">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">盘点单号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="inventoryno" lay-verify="inventoryno" autocomplete="off" placeholder="请输入单号" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-col-md4">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">盘点人</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="inventoryusername" name="inventoryusername" lay-verify="" autocomplete="off" placeholder="请选择盘点人" class="layui-input">
+                                @Html.ExHidden("inventoryusercode", curDrMainEntity.Get("inventoryusercode", ""))
+                            </div>
+                            <div class="layui-inline">
+                                @Html.LayUiSamllButton("选择人员", "btnSelectinventoryUser")
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="layui-row layui-col-space30">
+
+                    <div class="layui-col-md8">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">备注</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="remark" lay-verify="" autocomplete="off" placeholder="请输入备注" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!--多从表-->
+            <div class="layui-tab">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">产品明细信息</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <div class="layui-row">
+                            <div class="layui-col-md9"></div>
+                            <div class="layui-col-md3">@Html.LayUiSamllButton("选择产品", "btnSelectSku")</div>
+                        </div>
+                        <table class="layui-table" id="detailInfo">
+                            <colgroup>
+                                <col width="150">
+                                <col width="150">
+                                <col width="150">
+                                <col width="200">
+                                <col width="150">
+                                <col width="150">
+                                
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>操作</th>
+                                    <th>产品</th>
+                                    <th>规格</th>
+                                    <th>单位</th>
+                                    <th>数量</th>
+                                    <th>货架号</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    @Html.ExHidden("inventorycode", curDrMainEntity.Get("inventorycode", ""))
+
+    @Html.ExHidden("detailListCount", "0")
+}
+
+@section MainBottom
+{
+
+    <script type="text/html" id="tplRowInfo">
+        <tr>
+            <td>
+                @Html.LayUiSamllButton("删除", "btnDeleteRow")
+                <input type="hidden" value="pt_skucode" name="skucode[]"/>
+            </td>
+            <td>pt_productname</td>
+            <td>pt_spec</td>
+            <td>pt_unit</td>
+
+            
+            <td>
+                <input type="text" name="qty[]" lay-verify="qty" autocomplete="off" placeholder="数量" class="layui-input">
+            </td>
+            <td>
+                <input type="text" name="poscode[]" lay-verify="poscode" autocomplete="off" placeholder="货架号" class="layui-input">
+            </td>
+
+        </tr>
+
+    </script>
+
+    <script>
+
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'element', 'laydate'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                laydate = layui.laydate,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            function initLayDate() {
+                lay('.curLayDate').each(function () {
+                    laydate.render({
+                        elem: this
+                      , trigger: 'click'
+                    });
+                });
+            }
+
+            initLayDate();
+
+            //自定义验证
+            form.verify({
+                //仓库编码
+                inventoryno: function (value, item) {
+                    if (value === "") {
+                        return "盘点单号不能为空";
+                    }
+                },
+                //仓库编码
+                shopcode: function (value, item) {
+                    if (value === "") {
+                        return "库区号不能为空";
+                    }
+                }
+            });
+
+            //选择负责人
+            $(".btnSelectinventoryUser").click(function () {
+                adfCommon.dlgSelectUser("800px", "600px", function () {
+                    $("#inventoryusercode").val(globalData.usercode);
+                    $("#inventoryusername").val(globalData.username);
+                });
+            });
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+
+                var curDetailListCount = $("#detailInfo>tbody>tr").length;
+                //alert(curDetailListCount);
+                //$("#detailListCount").val(curDetailListCount);
+                //form.render();
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                param.detailListCount = curDetailListCount;
+
+                console.log(param);
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            //增加行
+            $(".btnSelectSku").click(function () {
+
+                var tplInfo = $("#tplRowInfo").html();
+
+                var sUrl = "/renterp/sku/SelectMulti";
+                var sTitle = "选择产品";
+                adfCommon.dlgOpen(sTitle, sUrl, "90%", "90%", function () {
+                    var skuInfos = globalData;
+                    for (var i = 0; i < skuInfos.length; i++) {
+                        var sku = skuInfos[i];
+                        var rowInfo = tplInfo;
+
+                        //得到规格
+                        var specInfo = sku.color + " " + sku.size + " " + sku.spec;
+
+                        rowInfo = rowInfo.replace("pt_productname", sku.productname);
+                        rowInfo = rowInfo.replace("pt_spec", specInfo);
+                        rowInfo = rowInfo.replace("pt_unit", sku.unit);
+                        rowInfo = rowInfo.replace("pt_skucode", sku.skucode);
+                        $("#detailInfo>tbody").append(rowInfo);
+                    }
+
+                    //初始化日期事件
+                    //initLayDate();
+
+                    //提交前重新刷新
+                    form.render();
+
+                });
+
+            });
+
+            $("body").on("click", ".btnDeleteRow", function () {
+                $(this).parent().parent().remove();
+            });
+
+        });
+    </script>
+}
+

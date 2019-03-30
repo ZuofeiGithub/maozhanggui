@@ -1,0 +1,8 @@
+﻿当前版本是基于ECS电商版本v2框架
+mysql 8
+
+106.15.226.15
+用户：decoration
+密码:decoration888
+
+

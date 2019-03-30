@@ -1,0 +1,252 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/renterp/recharge";
+
+
+    //自定义参数
+    
+}
+
+@section MainHeader
+{
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">会员名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "membername", PlaceHolder = "会员名称" })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">手机:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "cellphone", PlaceHolder = "电话号码" })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiStdButton(new LayUiButtonAttr()
+                                 {
+                                     Caption = "查询",
+                                     ClassName = "btnSearch",
+                                     LayUiButtonTheme = LayUiButtonTheme.Normal,
+                                     LayUiButtonSize = LayUiButtonSize.Sm
+                                 })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiStdButton(new LayUiButtonAttr()
+       {
+           Caption = "刷新",
+           ClassName = "btnRefresh",
+           LayUiButtonTheme = LayUiButtonTheme.Normal,
+           LayUiButtonSize = LayUiButtonSize.Sm
+       })
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "add", LayerUiHtmlHelper.GetEvent("add"), LayUiButtonColor.Normal)
+}
+
+@section MainTableRowTool
+{
+    <!-- 这里同样支持 laytpl 语法，如： -->
+    {{# if(d.ischeck !="1"){ }}
+        @Html.LayUiSetPermissionButton(curGlobalUserPermission, "modify", LayerUiHtmlHelper.GetEvent("modify"), LayUiButtonColor.Normal)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "check", LayerUiHtmlHelper.GetEvent("check"), LayUiButtonColor.Normal)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "delete", LayerUiHtmlHelper.GetEvent("delete"), LayUiButtonColor.Danger)
+{{#  } }}
+}
+
+@section MainBottom
+{
+
+
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function() {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.membername = $("#membername").val();
+                sWhere.cellphone = $("#cellphone").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+
+            /*表格信息*/
+            //格式列
+            var colfmt_ischeck = function(d) {
+                var str = "";
+                if ($.trim(d.ischeck) == "1") {
+                    str = "<span style='color:green;'>是</span>";
+                } else {
+                    str = "<span style='color:red;'>否</span>";
+                }
+                return str;
+            }
+
+            var colfmt_rechargetype = function(d) {
+                var str = "";
+                if (d.rtype == "0") {
+                    str = "<span style='color:blue'>加分</span>";
+                }
+                if (d.rtype == "-1") {
+                    str = "<span style='color:red'>减分</span>";
+                }
+                return str;
+            }
+            var colfmt_money = function (d) {
+                var str = "";
+                if (d.rtype == "0") {
+                    str = "<span style='color:blue'>+"+d.money+"</span>";
+                }
+                if (d.rtype == "-1") {
+                    str = "<span style='color:red'>-" + d.money + "</span>";
+                }
+                return str;
+            }
+            var colfmt_score = function (d) {
+                var str = "";
+                if (d.rtype == "0") {
+                    str = "<span style='color:blue'>+" + d.score + "</span>";
+                }
+                if (d.rtype == "-1") {
+                    str = "<span style='color:red'>-" + d.score + "</span>";
+                }
+                return str;
+            }
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' },
+                    { field: 'membername', width: 150, title: '会员名称' },
+                    { field: 'cellphone', width: 120, title: '手机号码' },
+                    { field: 'money', width: 100, title: '金额',templet:colfmt_money},
+                    { field: 'score', width: 100, title: '积分',templet:colfmt_score},
+                    { field: 'rechargetype', width: 100, title: '处理方式', templet: colfmt_rechargetype }, { field: 'ischeck', width: 90, title: '是否审核', templet: colfmt_ischeck }, { field: 'createdatetime', width: 160, title: '创建时间' }, { field: 'remark', title: '备注' }, { width: 170, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function(row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    var rechargecode = rowData.rechargecode;
+                    var sUrl = "@curController/detail?docmd=modify&rechargecode=" + rechargecode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("修改信息", sUrl, '100%', '100%', function() {
+                        if (globalData.RetStatus == "101") {
+                            reloadData();
+                        }
+                    });
+
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function(index) {
+                        var rechargecode = rowData.rechargecode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.rechargecode = rechargecode;
+                        adfCommon.ajaxSyncPost(sUrl, param, function(retData) {
+                            layer.close(index);
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 103) {
+                                row.del();
+                            }
+                        }, function() {});
+
+                    });
+                } else if (row.event == 'check') {
+                    layer.confirm('确认要审核吗?', function(index) {
+                        var rechargecode = rowData.rechargecode;
+                        var sUrl = "@curController/execute?docmd=check";
+                        var param = {};
+                        param.rechargecode = rechargecode;
+
+                        adfCommon.ajaxSyncPost(sUrl, param, function(retData) {
+                            layer.close(index);
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 200) {
+                                reloadData();
+                            }
+                        }, function() {});
+
+                    });
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function() {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function() {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                adfCommon.dlgOpen("增加信息", sUrl, '100%', '100%', function() {
+                    if (globalData.RetStatus == "100") {
+                        reloadData();
+                    }
+                });
+            });
+
+            //刷新数据
+            $(".btnRefresh").on("click", function() {
+                reloadData();
+            });
+            //回车执行查询
+            $("body").on("keypress", function(e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+        });
+
+    </script>
+}
+
+
+
+

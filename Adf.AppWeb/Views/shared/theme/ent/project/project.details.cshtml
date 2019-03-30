@@ -1,0 +1,926 @@
+﻿@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@using Decoration.Service
+@{
+
+    /******************************************************************************************
+     * 功能：项目详细页
+     * 2018-10-18  创建人 顾健
+     *******************************************************************************************/
+
+    /*系统参数*/
+    Layout = "../master/master.detail.cshtml";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    String curDoCmd = ViewBag.CurrentCmd;
+
+    /*当前业务*/
+    String curController = "/ent/project";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    MDataTable curStatus = FrameWorkService.Instance().DataDic().GetAll("projectstatus");
+    MDataTable taskCate = DecorationService.Instance().TaskCate().GetAll(curDrMainEntity.Get("projectcode", ""));
+}
+
+<!--页面数据-->
+@section FormBody
+{
+    <div class="layui-tab layui-tab-card">
+        <ul class="layui-tab-title">
+            <li class="layui-this">项目基本信息</li>
+            <li class="">阶段列表</li>
+            <li class="">任务列表</li>
+            <li class="">项目提醒</li>
+            <li class="">项目用户</li>
+            <li class="">精选案例</li>
+            <li class="">设计档案</li>
+        </ul>
+        <div class="layui-tab-content" style="">
+            <div class="layui-tab-item layui-show" >
+                @using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+                     {
+                         @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "项目名称"})
+                         using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                         {
+                             @Html.LayUiStdInput(new LayUiInputAttr() {Id = "projectname", Name = "projectname", Val = curDrMainEntity.Get("projectname", "")})
+                         }
+                         @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "项目状态"})
+                         using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                         {
+                             @Html.LayUiStdSelect(new LayUiSelectAttr() {Id = "projectstatus", DataType = "db", Name = "projectstatus", Val = curDrMainEntity.Get("projectstatus", ""), DtSource = curStatus, ValueFieldName = "dicvalue", TextFieldName = "dickey"})
+                         }
+                     }
+
+             
+                @using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "详细地址"})
+                    using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                    {
+                        @Html.LayUiStdInput(new LayUiInputAttr() {Id = "projectaddress", Name = "projectaddress", Val = curDrMainEntity.Get("projectaddress", "")})
+                    }
+                   
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "地理位置"})
+                    using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                    {
+                        @Html.LayUiStdInput(new LayUiInputAttr() {Id = "gps", Name = "gps", Val = curDrMainEntity.Get("gps", "")})
+                        }
+                  
+                }
+              
+                @using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "开始时间"})
+                    using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                    {
+                        @Html.LayUiStdInput(new LayUiInputAttr() {Id = "startdate", Name = "startdate", Val = DecorationService.Initdate(curDrMainEntity.Get("startdate", ""))})
+                    }
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "结束时间"})
+                    using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                    {
+                        @Html.LayUiStdInput(new LayUiInputAttr() {Id = "enddate", Name = "enddate", Val = DecorationService.Initdate(curDrMainEntity.Get("enddate", ""))})
+                    }
+                }
+                @using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+                {
+                    @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "周期天数"})
+                    using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                    {
+                        @Html.LayUiStdInput(new LayUiInputAttr() {Id = "projectdays", Name = "projectdays", Val = curDrMainEntity.Get("projectdays", "")})
+                    }
+                }
+                @Html.Hidden("projectcode", curDrMainEntity.Get("projectcode", ""))
+                @Html.Hidden("companycode", curDrMainEntity.Get("companycode", ""))
+                <button class="layui-btn  layui-btn-sm  layui-btn-normal save " lay-filter="btnSubmit" lay-submit="">保存</button>
+                <button id="btnClose" class="layui-btn  layui-btn-sm  layui-btn-normal btnClose " lay-filter="btnClose" lay-submit="">关闭</button>
+                
+
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-card-header adf-card-header">
+                    <div class="layui-inline">
+                        <div class="layui-inline">
+                          
+                        </div>
+                    </div>
+                    <div class="layui-inline" style="float: right;">
+                        <div class="adf-form-select">
+                            <button class="Import layui-btn  layui-btn-sm  layui-btn-normal" lay-filter="btnImport" lay-submit="">引入阶段任务</button>
+                        </div>
+                    </div>
+
+                </div>
+                <table class="layui-hide" id="taskcate" lay-filter="curtaskcate"></table>
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-card-header adf-card-header">
+             
+                            @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InLine }))
+                            {
+                                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "任务阶段" })
+                                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+                                {
+                                    @Html.LayUiStdSelect(new LayUiSelectAttr() { VerifyName= "catecode", Id = "catecode", DataType = "db", Name = "catecode", DtSource = taskCate, ValueFieldName = "catecode", TextFieldName = "catename" })
+                                }
+                                
+                                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+                                {
+                                    @Html.LayUiSamllButton("搜索", "btnSearchTask")
+                                }
+                            }
+                
+                    <div class="layui-inline" style="float: right;">
+                        <div class="adf-form-select">
+                            <button class="addtask layui-btn  layui-btn-sm  layui-btn-normal" lay-filter="btnAddtask" lay-submit="">新增任务</button>
+                        </div>
+                    </div>
+
+                </div>
+           
+
+                <table class="layui-hide" id="task" lay-filter="curtask"></table>
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-card-header adf-card-header">
+             
+                            @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InLine }))
+                            {
+                                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "任务阶段" })
+                                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+                                {
+                                    @Html.LayUiStdSelect(new LayUiSelectAttr() { VerifyName= "projectcatecode", Id = "projectcatecode", DataType = "db", Name = "projectcatecode", DtSource = taskCate, ValueFieldName = "projectcatecode", TextFieldName = "catename" })
+                                }
+                                
+                                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+                                {
+                                    @Html.LayUiSamllButton("搜索", "btnSearchTip")
+                                }
+                            }
+               
+
+                </div>
+                <table class="layui-hide" id="tip" lay-filter="curtip">
+                    
+                </table>
+            </div>
+            <div class="layui-tab-item">
+                
+                <div class="layui-card-header adf-card-header">
+                    <div class="layui-inline">
+                        <div class="layui-inline">
+                         
+                        </div>
+                    </div>
+                    <div class="layui-inline" style="float: right;">
+                        <div class="adf-form-select">
+                            <button class="addprojectteam layui-btn  layui-btn-sm  layui-btn-normal" lay-filter="btnAddprojectteam" lay-submit="">选择企业成员</button>
+                        </div>
+                    </div>
+                </div>
+                <table class="layui-hide" id="projectteam" lay-filter="curprojectteam">
+                    
+                </table>
+            </div>
+            
+            <div class="layui-tab-item">
+                
+                <div class="layui-card-header adf-card-header">
+                    <div class="layui-inline">
+                        <div class="layui-inline">
+                         
+                        </div>
+                    </div>
+                    <div class="layui-inline" style="float: right;">
+                        <div class="adf-form-select">
+                            <button class="addcase layui-btn  layui-btn-sm  layui-btn-normal" lay-filter="btnAddcase" lay-submit="">选择案例</button>
+                        </div>
+                    </div>
+                </div>
+                <table class="layui-hide" id="case" lay-filter="curcase">
+                    
+                </table>
+            </div>
+            
+            <div class="layui-tab-item">
+
+                <table class="layui-hide" id="doc" lay-filter="curdoc"></table>
+            </div>
+        </div>
+    </div>
+   
+
+}
+
+
+
+<!--js-->
+@section MainBottom
+{
+    <script type="text/html" id="barDemo">
+        @Html.LayUiButton("修改", " layui-btn layui-btn-xs layui-btn-normal modify ", "", "lay-event='modify'")
+        @Html.LayUiButton("删除", " layui-btn layui-btn-xs layui-btn-danger delete ", "", "lay-event='delete'")
+    </script>
+    <script type="text/html" id="barDemoTask">
+        @Html.LayUiButton("修改", " layui-btn layui-btn-xs layui-btn-normal modify ", "", "lay-event='modify'")
+        @Html.LayUiButton("删除", " layui-btn layui-btn-xs layui-btn-danger delete ", "", "lay-event='delete'")
+        @Html.LayUiButton("设置角色", " layui-btn layui-btn-xs layui-btn-normal SetRole ", "", "lay-event='setrole'")
+    </script>
+    <script type="text/html" id="barDemoTip">
+        @Html.LayUiButton("修改", " layui-btn layui-btn-xs layui-btn-normal modify ", "", "lay-event='modify'")
+        @Html.LayUiButton("删除", " layui-btn layui-btn-xs layui-btn-danger delete ", "", "lay-event='delete'")
+        @Html.LayUiButton("提醒", " layui-btn layui-btn-xs layui-btn-normal sendtip ", "", "lay-event='sendtip'")
+    </script>
+    
+    <script type="text/html" id="barDemoTeam">
+        @Html.LayUiButton("删除", " layui-btn layui-btn-xs layui-btn-danger delete ", "", "lay-event='delete'")
+    </script>
+    
+    <script type="text/html" id="barDemoCase">
+        @Html.LayUiButton("设置角色", " layui-btn layui-btn-xs layui-btn-normal SetRole ", "", "lay-event='setrole'")
+        @Html.LayUiButton("删除", " layui-btn layui-btn-xs layui-btn-danger delete ", "", "lay-event='delete'")
+    </script>
+    <script>
+        InitSelect();
+        var curRetDoCmd = "";
+        var pageSize = 20;
+        var dataUrl = "/ent/taskcate/GetListData?projectcode=@curDrMainEntity.Get("projectcode", "")";
+        var taskUrl = "/ent/task/GetListData?projectcode=@curDrMainEntity.Get("projectcode", "")";
+        var tipUrl = "/ent/tip/GetAllListData?projectcode=@curDrMainEntity.Get("projectcode", "")";
+        var teamUrl = "/ent/projectteam/GetListData?projectcode=@curDrMainEntity.Get("projectcode", "")";
+        var caseUrl = "/ent/case/GetListData?projectcode=@curDrMainEntity.Get("projectcode", "")";
+        var docUrl = "/ent/project/GetDocListData?projectcode=@curDrMainEntity.Get("projectcode", "")";
+        var sWhere = {};
+
+        layui.use('laydate',
+            function() {
+                var laydate = layui.laydate;
+                laydate.render({
+                    elem: "#startdate"
+                });
+                laydate.render({
+                    elem: "#enddate"
+                });
+            });
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'element', 'upload', 'table'],
+            function() {
+                var table = layui.table,
+                    layer = layui.layer,
+                    form = layui.form,
+                    element = layui.element,
+                    adfCommon = layui.adfCommon;
+
+
+/***************************************项目阶段相关开始********************************************************************************************************/
+                var data = function(d) {
+                    var str = "";
+                    if (d.startdate != null) {
+                        str = d.startdate.split(" ")[0];
+                    }
+                    return str;
+                }
+
+                var data1 = function(d) {
+                    var str = "";
+                    if (d.enddate != null) {
+                        str = d.enddate.split(" ")[0];
+                    }
+                    return str;
+                }
+
+                var colInfo = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'catename',  title: '任务阶段名称' },
+                        //{ field: 'cateorder', width: 150, title: '排序' },
+                        { field: 'startdate', width: 150,title: '开始时间', templet: data },
+                        { field: 'enddate', width: 150,title: '结束时间', templet: data1 },
+                        { field: 'days', width: 100,title: '阶段天数' },
+                        { title: '操作', width: 150, fixed: 'right', toolbar: '#barDemo' } //设置固定
+                    ]
+                ];
+                setStdTable1("taskcate",
+                    "curtaskcate",
+                    table,
+                    colInfo,
+                    dataUrl,
+                    pageSize,
+                    sWhere,
+                    function(row) {
+                        var rowData = row.data;
+                        if (row.event == 'modify') {
+                            var projectcatecode = rowData.projectcatecode;
+                            var sUrl = "/ent/taskcate/detail?docmd=modify&projectcatecode=" + projectcatecode;
+                            adfCommon.dlgOpen("修改信息",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {
+                                    if (curRetDoCmd == "101") {
+                                        ReloadTable("taskcate", sWhere);
+                                    }
+                                });
+                        } else if (row.event == 'delete') {
+                            layer.confirm('删除当前阶段会清空当前阶段所有施工任务，确定删除吗?',
+                                function(index) {
+                                    var sUrl = "/ent/taskcate/execute?docmd=delete";
+                                    var param = {};
+                                    param.projectcatecode = rowData.projectcatecode;
+                                    param.projectcode = rowData.projectcode;
+                                    param.catecode = rowData.catecode;
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function (retData) {
+                                            layer.msg(retData.RetValue);
+                                            if (retData.RetStatus == 100) {
+                                                row.del();
+                                                InitSelect();
+                                                ReloadTable("taskcate", sWhere);
+                                                ReloadTable("task", sWhere);
+                                            }
+                                        },
+                                        function() {});
+                                });
+                        }
+                    });
+
+                form.on('submit(btnImport)',
+                    function() {
+                        var title = "选择任务阶段";
+                        var frameUrl =
+                            "/ent/CompanyTaskCate/Select?type=1&projectcode=@curDrMainEntity.Get("projectcode", "")";
+                        dlgOpen(title,
+                            frameUrl,
+                            "80%",
+                            "80%",
+                            function() {
+                                var rows = [];
+                                var data = globalData;
+                                if (data.length > 0) {
+                                    for (var i = 0; i < data.length; i++) {
+                                        rows.push(data[i].catecode + "|" + data[i].catename + "|" + data[i].cateorder);
+                                    }
+                                    var param = {};
+                                    param.cateRow = rows.join("$");
+                                    param.doCmd = "add";
+                                    param.projectcode = "@curDrMainEntity.Get("projectcode", "")";
+                                    $.post("/ent/taskcate/execute",
+                                        param,
+                                        function(retData) {
+                                            layer.msg(retData.RetValue,
+                                                {
+
+                                                },
+                                                function() {
+                                                    ReloadTable("taskcate", sWhere);
+                                                    ReloadTable("task", sWhere);
+                                                    InitSelect();
+                                                    globalData = "";
+                                                });
+
+                                        });
+                                }
+
+                            });
+                    });
+/***************************************项目阶段相关结束*******************************************************************************************************/
+
+
+/***************************************项目施工任务相关开始********************************************************************************************************/
+                var data2 = function(d) {
+                    var str = "";
+                    if (d.taskstartdate != null) {
+                        str = d.taskstartdate.split(" ")[0];
+                    }
+                    return str;
+                }
+
+                var data3 = function(d) {
+                    var str = "";
+                    if (d.taskenddate != null) {
+                        str = d.taskenddate.split(" ")[0];
+                    }
+                    return str;
+                }
+                var colTask = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'taskname', width: 150, title: '任务名称' },
+                        { field: 'taskdes', width: 150, title: '任务描述' },
+                        { field: 'taskstartdate', title: '预计开始时间', templet: data2 },
+                        { field: 'taskenddate', title: '预计结束时间', templet: data3 },
+                        { field: 'taskdays', title: '预计完成天数' },
+                        { title: '操作', width: 260, fixed: 'right', toolbar: '#barDemoTask' } //设置固定
+                    ]
+                ];
+                setStdTable1("task",
+                    "curtask",
+                    table,
+                    colTask,
+                    taskUrl,
+                    pageSize,
+                    sWhere,
+                    function(row) {
+                        var rowData = row.data;
+                        if (row.event == 'modify') {
+                            var taskcode = rowData.taskcode;
+                            var sUrl = "/ent/task/detail?docmd=modify&taskcode=" + taskcode;
+                            adfCommon.dlgOpen("修改阶段信息",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {
+                                    console.log(curRetDoCmd);
+                                    if (curRetDoCmd == "101") {
+                                        sWhere.catecode = $("#catecode").val();
+                                        ReloadTable("task", sWhere);
+                                    }
+                                });
+                        } else if (row.event == 'delete') {
+                            layer.confirm('是否要删除当前施工任务吗?',
+                                function(index) {
+                                    var sUrl = "/ent/task/execute?docmd=delete";
+                                    var param = {};
+                                    param.taskcode = rowData.taskcode;
+                                    param.projectcode = rowData.projectcode;
+                                    param.catecode = rowData.catecode;
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function(retData) {
+                                            layer.msg(retData.RetValue);
+                                            if (retData.RetStatus == 103) {
+                                                row.del();
+                                                sWhere.catecode = $("#catecode").val();
+                                                ReloadTable("task", sWhere);
+                                            }
+                                        },
+                                        function() {});
+                                });
+                        } else if (row.event == 'setrole') {
+                            var sUrl = "/ent/companyrole/select?taskcode=" + rowData.taskcode + "&type=1";
+                            adfCommon.dlgOpen("设置角色",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {
+                                    var rolecode = [];
+                                    var data = globalData;
+                                    if (data.length > 0) {
+                                        for (var i = 0; i < data.length; i++) {
+                                            rolecode.push(data[i].rolecode);
+                                        }
+                                        var param = {};
+                                        param.rolecode = rolecode.join('|');
+                                        param.taskcode = rowData.taskcode;
+                                        param.docmd = "setrole";
+                                        $.post("/ent/task/execute",
+                                            param,
+                                            function(retData) {
+                                                layer.msg(retData.RetValue,
+                                                    {
+
+                                                    },
+                                                    function() {
+                                                        ReloadTable("taskcate", sWhere);
+                                                        ReloadTable("task", sWhere);
+                                                        InitSelect();
+                                                        globalData = "";
+                                                    });
+
+                                            });
+                                    }
+                                });
+                        }
+                    });
+                form.on('submit(btnAddtask)',
+                    function() {
+                        var catecode = $("#catecode").val();
+                        if (catecode == "") {
+                            adfCommon.alert("请先选择任务阶段");
+                            return false;
+                        }
+
+
+                        var sUrl =
+                            "/ent/task/detail?docmd=add&projectcode=@curDrMainEntity.Get("projectcode", "")&catecode=" +
+                                catecode;
+                        adfCommon.dlgOpen("新增任务",
+                            sUrl,
+                            '100%',
+                            '100%',
+                            function() {
+                                if (curRetDoCmd == "100") {
+                                    sWhere.catecode = $("#catecode").val();
+                                    ReloadTable("task", sWhere);
+                                }
+                            });
+                    });
+                $(".btnSearchTask").click(function() {
+                    sWhere.catecode = $("#catecode").val();
+                    ReloadTable("task", sWhere);
+                });
+/***************************************项目施工任务相关结束*******************************************************************************************************/
+
+
+/***************************************项目提醒相关开始*******************************************************************************************************/
+                var colfmt_tipimg = function (d) {
+                    var str = "";
+                    var tipimg = d.tipimg;
+                    if (tipimg != "")
+                    {
+                        for (var i = 0; i < tipimg.split(',').length; i++)
+                        {
+                            str += "<img class='rowThumbnail' src=\"" + tipimg.split(',')[i] + "\" />";
+                        }
+                    }
+                    return str;
+                }
+                var colTip = [
+                    [
+                        { field: 'catename', width: 100, title: '任务阶段' },
+                        { field: 'taskname', width: 150, title: '任务名称' },
+                        { field: 'tipcontent', width: 250, title: '描述' },
+                        { field: 'reminddatetime', width: 150, title: '提醒时间' },
+                        { field: 'tipimg', title: '图片', templet: colfmt_tipimg  },
+                        { field: 'rolename', width: 100, title: '人员角色' }
+                    ]
+                ];
+                setStdTable1("tip",
+                    "curtip",
+                    table,
+                    colTip,
+                    tipUrl,
+                    pageSize,
+                    sWhere,
+                    function (row) {
+                        var rowData = row.data;
+
+                    });
+
+                $(".btnSearchTip").click(function() {
+                    sWhere.projectcatecode = $("#projectcatecode").val();
+                    ReloadTable("tip", sWhere);
+                });
+/***************************************项目提醒相关结束*******************************************************************************************************/
+
+
+/***************************************项目服务团队开始*******************************************************************************************************/
+                  var colTeam = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'username', width: 150, title: '姓名' },
+                        { field: 'rolename', title: '企业角色' },
+                        { title: '操作', width: 100, fixed: 'right', toolbar: '#barDemoTeam' } //设置固定
+                    ]
+                ];
+                  setStdTable1("projectteam",
+                    "curprojectteam",
+                    table,
+                    colTeam,
+                    teamUrl,
+                    pageSize,
+                    sWhere,
+                    function (row) {
+
+                        var rowData = row.data;
+                      if (row.event == 'delete') {
+                            layer.confirm('是否要删除当前角色吗?',
+                                function (index) {
+                                    var sUrl = "/ent/projectteam/execute?docmd=delete";
+                                    var param = {};
+                                    param.teamcode = rowData.teamcode;
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function (retData) {
+                                            layer.msg(retData.RetValue);
+                                            if (retData.RetStatus == 103) {
+                                                row.del();
+                                                ReloadTable("projectteam", sWhere);
+                                            }
+                                        },
+                                        function () { });
+                                });
+                        }
+                    });
+
+                form.on('submit(btnAddprojectteam)',
+                    function() {
+
+                        var sUrl =
+                            "/ent/companyuser/SelectCompanyUser?type=1&projectcode=@curDrMainEntity.Get("projectcode","")";
+                        adfCommon.dlgOpen("选择项目成员",
+                            sUrl,
+                            '100%',
+                            '100%',
+                            function() {
+                                var usercode = [];
+                                var data = globalData;
+                                if (data.length > 0) {
+                                    for (var i = 0; i < data.length; i++) {
+                                        usercode.push(data[i].usercode);
+                                    }
+                                    var param = {};
+                                    param.usercode = usercode.join('|');
+                                    param.projectcode = "@curDrMainEntity.Get("projectcode","")";
+                                    param.docmd = "add";
+                                    $.post("/ent/projectteam/execute",
+                                        param,
+                                        function(retData) {
+                                            layer.msg(retData.RetValue,
+                                                {
+
+                                                },
+                                                function() {
+                                                    ReloadTable("projectteam", sWhere);
+                                                    globalData = "";
+                                                });
+
+                                        });
+                                }
+
+                            });
+                    });
+
+/***************************************项目服务团队结束*******************************************************************************************************/
+/***************************************精选案例开始*******************************************************************************************************/
+
+                   var colCase = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'projectname', title: '项目名称' },
+                        { title: '操作', width: 200, fixed: 'right', toolbar: '#barDemoCase' } //设置固定
+                    ]
+                ];
+                  setStdTable1("case",
+                    "curcase",
+                    table,
+                      colCase,
+                    caseUrl,
+                    pageSize,
+                    sWhere,
+                    function (row) {
+
+                        var rowData = row.data;
+                      if (row.event == 'delete') {
+                            layer.confirm('是否要删除当前案例吗?',
+                                function (index) {
+                                    var sUrl = "/ent/case/execute?docmd=delete";
+                                    var param = {};
+                                    param.casecode = rowData.casecode;
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function (retData) {
+                                            layer.msg(retData.RetValue);
+                                            if (retData.RetStatus == 103) {
+                                                row.del();
+                                                ReloadTable("case", sWhere);
+                                            }
+                                        },
+                                        function () { });
+                                });
+                        }
+                      else if (row.event == 'setrole') {
+                          var sUrl = "/ent/companyrole/select?casecode=" + rowData.casecode + "&type=1";
+                          adfCommon.dlgOpen("设置角色",
+                              sUrl,
+                              '100%',
+                              '100%',
+                              function () {
+                                  var rolecode = [];
+                                  var data = globalData;
+                                  if (data.length > 0) {
+                                      for (var i = 0; i < data.length; i++) {
+                                          rolecode.push(data[i].rolecode);
+                                      }
+                                      var param = {};
+                                      param.rolecode = rolecode.join('|');
+                                      param.casecode = rowData.casecode;
+                                      param.docmd = "setrole";
+                                      $.post("/ent/case/execute",
+                                          param,
+                                          function (retData) {
+                                              layer.msg(retData.RetValue,
+                                                  {
+
+                                                  },
+                                                  function () {
+                                                      ReloadTable("case", sWhere);
+                                                      InitSelect();
+                                                      globalData = "";
+                                                  });
+
+                                          });
+                                  }
+                              });
+                      }
+                    });
+
+                  form.on('submit(btnAddcase)',
+                    function() {
+
+                        var sUrl =
+                            "/ent/project/Select?type=1&projectcode=@curDrMainEntity.Get("projectcode","")";
+                        adfCommon.dlgOpen("选择项目成员",
+                            sUrl,
+                            '100%',
+                            '100%',
+                            function () {
+                                var caseprojectcode = [];
+                                var data = globalData;
+                                if (data.length > 0) {
+                                    for (var i = 0; i < data.length; i++) {
+                                        caseprojectcode.push(data[i].projectcode);
+                                    }
+                                    var param = {};
+                                    param.caseprojectcode = caseprojectcode.join('|');
+                                    param.projectcode = "@curDrMainEntity.Get("projectcode","")";
+                                    param.docmd = "add";
+                                    $.post("/ent/case/execute",
+                                        param,
+                                        function(retData) {
+                                            layer.msg(retData.RetValue,
+                                                {
+
+                                                },
+                                                function() {
+                                                    ReloadTable("case", sWhere);
+                                                    globalData = "";
+                                                });
+
+                                        });
+                                }
+
+                            });
+                    });
+
+
+/***************************************精选案例结束*******************************************************************************************************/
+/***************************************设计档案开始*******************************************************************************************************/
+
+                var colfmt_gettypename = function (d) {
+                    var str = "";
+                    var doctype = d.doctype;
+                    switch (doctype) {
+                    case "0":
+                            str = "需求记录";
+                            break;
+                    case "1":
+                        str = "户型图";
+                        break;
+                    case "2":
+                        str = "平面方案";
+                        break;
+                    case "3":
+                        str = "施工图";
+                        break;
+                    case "4":
+                        str = "辅材清单";
+                        break;
+                    default:
+                        str = "需求记录";
+                        break;
+                    }
+
+                    return str;
+                }
+
+                  var colfmt_getimg = function (d) {
+                    var str = "";
+                    var img = d.docimages;
+                    if (img != "")
+                    {
+                        str = "<img class='rowThumbnail' src=\"" + img + "\" />";
+                    }
+                    return str;
+                }
+
+                   var colDoc = [
+                    [
+                           { field: 'doctype', width: 150, title: '档案类型', templet: colfmt_gettypename },
+                           { field: 'doccontent', title: '档案记录' },
+                           { field: 'docimages', width: 250, title: '档案图片', templet: colfmt_getimg },
+                           { field: 'username', width: 200, title: '创建人' }
+                    ]
+                ];
+                  setStdTable1("doc",
+                    "curdoc",
+                    table,
+                      colDoc,
+                    docUrl,
+                    pageSize,
+                    sWhere,
+                    function (row) {
+
+                       
+                    });
+
+
+
+/***************************************设计档案结束*******************************************************************************************************/
+
+                /*保存*/
+                form.on('submit(btnSubmit)',
+                    function(obj) {
+                        var sUrl = "@curController/execute?docmd=modify";
+                        var param = obj.field;
+                        adfCommon.ajaxSyncPost(sUrl,
+                            param,
+                            function(retData) {
+                                layer.msg(retData.RetValue);
+                            },
+                            function() {
+                                adfCommon.alert("网络存在异常,请重试");
+                            });
+                    });
+
+
+                /*关闭*/
+                $("#btnClose").click(function() {
+                    adfCommon.dlgClose();
+                });
+            });
+
+        function setStdTable1(id, filter, table, colInfo, dataUrl, pagesie, sWhere, eventFunc) {
+            table.render({
+                elem: '#' + id //渲染DOM
+                ,
+                remoteSort: true,
+                url: dataUrl //数据接口
+                ,
+                height: 'full-137',
+                where: sWhere,
+                cellMinWidth: 100 //全局定义常规单元格的最小宽度
+                ,
+                cols: colInfo,
+                limit: pagesie //每页数目限制
+                ,
+                page: { theme: '#1E9FFF' } //开启分页，并设定颜色
+                ,
+                request: {
+                    pageName: "p",
+                    limitName: "ps"
+                }
+
+            });
+
+            //监听表格事件
+            table.on('tool(' + filter + ')', eventFunc);
+        }
+
+        function dlgOpen(title, frameUrl, width, height, endFunc) {
+            layer.open({
+                type: 2,
+                title: title,
+                scrollbar: true,
+                maxmin: false,
+                isOutAnim: false,
+                area: [width, height],
+                content: frameUrl,
+                end: endFunc
+            });
+        }
+
+        function InitSelect() {
+            $.post("/ent/taskcate/select?projectcode=@curDrMainEntity.Get("projectcode", "")",
+                function(retData) {
+                    var str = JSON.parse(retData);
+
+                    var html = "";
+
+                    var html2 = "";
+                    html += "<option value=\"\">-请选择-</option>";
+                    html2 += "<option value=\"\">-请选择-</option>";
+                    for (var i = 0; i < str.rowcount; i++) {
+
+                        html += "<option value=\"" + str.rows[i].catecode + "\">" + str.rows[i].catename + "</option>";
+                        html2 += "<option value=\"" + str.rows[i].projectcatecode + "\">" + str.rows[i].catename + "</option>";
+                    }
+                    console.log(html);
+                    $("#catecode").empty();
+                    $("#projectcatecode").empty();
+                    $("#catecode").append(html);
+                    $("#projectcatecode").append(html2);
+                    layui.use(['form'],
+                        function() {
+                            var form = layui.form;
+                            form.render('select');
+                        });
+                });
+        }
+
+        function ReloadTable(id, sWhere) {
+            layui.use(['table'],
+                function() {
+                    var table = layui.table;
+                    var option = { where: sWhere, page: { curr: 1 } };
+                    table.reload(id, option);
+                });
+        }
+
+
+    </script>
+}
+

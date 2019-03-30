@@ -1,0 +1,468 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using Adf.RentErp.Service
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/compensate";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+    
+}
+
+@section MainHeader
+{
+
+}
+
+
+@section FormBody
+{
+
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-card-header-title">租赁赔偿</div>
+            </div>
+            <div class="layui-card-body" style="padding: 24px;">
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("赔偿单号"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                       {
+                           PlaceHolder = "自动流水号",
+                           Id = "compensateno",
+                           Val = curDrMainEntity.Get("compensateno", ""),
+                           IsReadOnly = true
+                       })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">租赁单号</label>
+                            <div class="layui-input-block">
+                                <div class="layui-inline">
+                                    @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               PlaceHolder = "请选择",
+                               Id = "sono",
+                               Val = curDrMainEntity.Get("sono", ""),
+                               VerifyName = "required",
+                               IsReadOnly = true
+                           })
+                                    @Html.Hidden("socode", curDrMainEntity.Get("socode", ""))
+                                </div>
+                                <div class="layui-inline">
+                                    @Html.LayUiStdButton(new LayUiButtonAttr()
+                                                     {
+                                                         Caption = "选择未还清的租赁订单",
+                                                         ClassName = "btnSelectSono",
+                                                         LayUiButtonTheme = LayUiButtonTheme.Normal,
+                                                         LayUiButtonSize = LayUiButtonSize.Sm
+                                                     })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("会员名称"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    PlaceHolder = "选择租赁单后自动填充",
+                                                    IsReadOnly = true,
+                                                    Id = "membername",
+                                                    Val = curDrMainEntity.Get("membername", ""),
+                                                    VerifyName = "required"
+                                                })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("赔偿金额"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                       {
+                           PlaceHolder = "￥0.00",
+                           IsReadOnly = true,
+                           Id = "paymoney",
+                           Val = curDrMainEntity.Get("paymoney", ""),
+                           VerifyName = "required|number"
+                       })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("赔偿时间"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                       {
+                           PlaceHolder = "yyyy-MM-dd",
+                           Id = "compensatedate",
+                           Val = curDrMainEntity.Get<DateTime>("compensatedate", DateTime.Now).ToString("yyyy-MM-dd"),
+                           VerifyName = "required|date"
+                       })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("支付方式"))
+                        {
+                            @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "paymenttype", Val = curDrMainEntity.Get("paymenttype", ""), DataType = "dic", DicCode = "paymenttype", VerifyName = "required" })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("是否支付"))
+                        {
+                            @Html.LayUiStdSelect(new LayUiSelectAttr() { VerifyName = "ispayed", Id = "ispayed", Texts = "否|是", Values = "0|1", Val = curDrMainEntity.Get("ispayed", "0") })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">赔偿备注</label>
+                            <div class="layui-input-block">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               PlaceHolder = "",
+                               Id = "remark",
+                               Val = curDrMainEntity.Get("remark", "")
+                           })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--多从表-->
+            <div class="layui-tab">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">赔偿物料清单</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <div class="layui-row">
+                            <div class="layui-col-md9"></div>
+                            <div class="layui-col-md3">@Html.LayUiSamllButton("选择赔偿物料", "btnSelectSku")</div>
+                        </div>
+                        <table class="layui-table" id="detailInfo">
+                            <colgroup>
+                                <col width="60">
+                                <col width="100">
+                                <col>
+                                <col>
+                                <col width="60">
+                                <col width="100">
+                                <col width="100">
+                                <col width="150">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>操作</th>
+                                    <th>货号</th>
+                                    <th>名称</th>
+                                    <th>规格</th>
+                                    <th>单位</th>
+                                    <th>赔偿单价</th>
+                                    <th>赔偿数量</th>
+                                    <th>小计金额</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Hidden("compensatecode", curDrMainEntity.Get("compensatecode", ""))
+    @Html.ExHidden("detailListCount", "0")
+}
+
+
+@section FormButton{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Id = "btnClose",
+                             Caption = "关闭",
+                             LayUiButtonSize = LayUiButtonSize.Default,
+                             LayUiButtonTheme = LayUiButtonTheme.Normal
+
+                         })
+}
+
+
+@section MainBottom
+{
+    <script>
+
+
+        var artnoList = [];
+
+        //初始化填充已经选择的产品
+        $(function () {
+            var rows = $("#detailInfo>tbody > tr");
+            if (rows) {
+                rows.each(function () {
+                    var artno = $(this).find("td:eq(1)").text();
+                    artnoList.push(artno);
+                });
+            }
+        });
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'laydate'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon,
+                laydate = layui.laydate;
+
+            laydate.render({ elem: "#compensatedate" });
+
+            //自定义验证
+            form.verify({
+
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var curDetailListCount = $("#detailInfo>tbody>tr").length;
+                if (curDetailListCount == 0) {
+                    adfCommon.alert("请选择赔偿物料！");
+                    return;
+                }
+
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                param.detailListCount = curDetailListCount;
+                var rowIndex = 0;
+                var rows = $("#detailInfo > tbody > tr");
+                rows.each(function () {
+                    rowIndex = rows.index($(this));
+                    var itemData = $(this).find("select,input").serializeArray();
+                    for (var i = 0; i < itemData.length; i++) {
+                        var item = itemData[i];
+                        var keyname = item.name + "[" + rowIndex + "]";
+                        param[keyname] = item.value;
+                    }
+                });
+                //console.log(param);
+
+                var loadIndex = layer.load(2);
+                adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                    layer.close(loadIndex);
+                    console.log(retData);
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            //选择未还清的租赁订单
+            $(".btnSelectSono").click(function () {
+                var sUrl = "/renterp/compensate/SelNoReturnSocode";
+                var sTitle = "选择未还清的租赁订单";
+                adfCommon.dlgOpen(sTitle, sUrl, "90%", "90%", function () {
+                    if ($.isEmptyObject(globalData)) {
+                        return false;
+                    }
+                    var d = globalData;
+                    globalData = {};
+                    $("#sono").val(d.sono);
+                    $("#socode").val(d.socode);
+                    $("#membername").val(d.membername);
+                    console.log(d);
+                });
+            });
+
+            //选择赔偿物料
+            $(".btnSelectSku").click(function () {
+                var socode = $("#socode").val();
+                if (socode == "") {
+                    layer.msg("请先选择未还清的租赁订单");
+                    return false;
+                }
+                var sUrl = "/renterp/compensate/SelNoReturnSkucode?socode=" + socode;
+                var sTitle = "选择赔偿物料";
+                adfCommon.dlgOpen(sTitle, sUrl, "90%", "90%", function () {
+                    if ($.isEmptyObject(globalData)) {
+                        return false;
+                    }
+                    var d = globalData;
+                    globalData = {};
+
+                    console.log(d);
+                });
+            });
+
+
+            //修改初始化数据
+            if ("@curDoCmd" == "modify" || "@curDoCmd" == "view") {
+                var keycode = $("#compensatecode").val();
+                fillReturnDetail(keycode);
+            }
+
+            function fillReturnDetail(keycode) {
+                var socode = $("#socode").val();
+                var paramData = { socode: socode, keycode: keycode }
+                var loadIndex = layer.load(2);
+                $.getJSON("/renterp/compensate/GetDetailsWithKeyCode", paramData, function (retData) {
+                    layer.close(loadIndex);
+                    console.log(retData);
+                    if (retData.length > 0) {
+                        var rowStr = "";
+                        for (var i = 0; i < retData.length; i++) {
+                            var sku = retData[i];
+                            rowStr += GetRowHtml(sku);
+                        }
+                        $("#detailInfo > tbody").append(rowStr);
+                    }
+
+                    //提交前重新刷新
+                    form.render();
+                });
+            }
+
+
+        });
+
+
+        //加入选择的赔偿物料
+        function addSelectedProduct(rowData) {
+            layui.use(['layer', 'form'], function () {
+                var layer = layui.layer,
+                    form = layui.form;
+
+                //判断是否选择过
+                if (rowData == null) {
+                    layer.msg("请选择一个赔偿产品");
+                }
+                if ($.inArray(rowData.artno, artnoList) != -1) {
+                    layer.msg("该赔偿产品已选择");
+                    return false;
+                }
+                artnoList.push(rowData.artno);
+
+                var sku = rowData;
+                console.log(sku);
+
+                var rowStr = GetRowHtml(sku);
+                $("#detailInfo>tbody").append(rowStr);
+                //提交前重新刷新
+                form.render();
+            });
+        };
+
+
+        function GetRowHtml(sku) {
+            var pcsl = sku.pcsl;
+            var pcdj = sku.pcdj;
+            var pcje = sku.pcje;
+            var inputAttrs = " class='layui-input' lay-verify='required|number' style='width:100px;' ";
+            var rowHtml = "<tr>";
+            rowHtml += "<td><input type='button' class='layui-btn layui-btn-normal layui-btn-sm btnDeleteRow' value='删除' /><input type='hidden' name='skucode' value='" + sku.skucode + "' /></td>";
+            rowHtml += "<td>" + sku.artno + "</td>";
+            rowHtml += "<td>" + sku.productname + "</td>";
+            rowHtml += "<td>" + sku.skuspec + "</td>";
+            rowHtml += "<td>" + sku.unit + "</td>";
+            rowHtml += "<td><input name='pcdj' value='" + pcdj + "' " + inputAttrs + " /></td>";
+            rowHtml += "<td><input name='pcsl' value='" + pcsl + "' " + inputAttrs + " /></td>";
+            rowHtml += "<td><input name='pcje' value='" + pcje + "' " + inputAttrs + " readonly /></td>";
+            rowHtml += "</tr>";
+            return rowHtml;
+        }
+
+        $(function () {
+            //赔偿单价变化
+            $("body").on("change", "input[name='pcdj']", function () {
+                var params = getCalcParams(this);
+                calcChangeResult(params);
+            });
+            //赔偿数量变化
+            $("body").on("change", "input[name='pcsl']", function () {
+                var params = getCalcParams(this);
+                calcChangeResult(params);
+            });
+
+            //删除清单中的产品
+            $("body").on("click", ".btnDeleteRow", function () {
+                var delArtno = $(this).parent().siblings().eq(0).text();
+                var list = [];
+                for (var i = 0; i < artnoList.length; i++) {
+                    if (artnoList[i] != delArtno) {
+                        list.push(artnoList[i]);
+                    }
+                }
+                artnoList = list;
+                $(this).closest("tr").remove();
+                fillSumTotal();
+            });
+        });
+
+        //获取需要计算的行参数
+        function getCalcParams(e) {
+            var row = $(e).closest("tr");
+            var rowindex = $("#detailInfo > tbody > tr").index(row);
+            var pcdj = row.find("input[name='pcdj']").val();
+            var pcsl = row.find("input[name='pcsl']").val();
+            var p = {};
+            p.pcdj = pcdj;
+            p.pcsl = pcsl;
+            p.rowindex = rowindex;
+            return p;
+        }
+
+        //计算数值变化后的结果
+        function calcChangeResult(params) {
+            console.log(params);
+            var objSubTotal = $("input[name='pcje']").eq(params.rowindex);
+            var dj = params.pcdj;
+            var sl = params.pcsl;
+            if (dj == "" || sl == "") {
+                objSubTotal.val(0);
+                fillSumTotal();
+                return;
+            }
+            var subTotal = dj * sl;
+            $(objSubTotal).val(subTotal);
+            fillSumTotal();
+        }
+
+        //重新计算所有小计金额及支付金额
+        function fillSumTotal() {
+            var allTotal = 0;
+            $("input[name='pcje']").each(function () {
+                allTotal += parseFloat($(this).val());
+            });
+            allTotal = Math.round(allTotal * 100) / 100;
+            $("#paymoney").val(allTotal);
+            $("#summoney").val(allTotal);
+        }
+    </script>
+}

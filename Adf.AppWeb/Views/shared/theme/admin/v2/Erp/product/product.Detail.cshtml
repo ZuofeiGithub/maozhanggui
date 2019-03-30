@@ -1,0 +1,806 @@
+﻿@using System.Collections
+@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/erp/product";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    //所有的sku
+    MDataTable curDtAllSku = ViewBag.DtAllSku ?? new MDataTable();
+
+    //产品分类
+
+    //店铺产品分类
+    MDataTable curDtProductCateAll = ViewBag.DtProductCateAll ?? new MDataTable();
+
+    //系统产品分类
+    MDataTable curDtShopProductCateAll = ViewBag.DtShopProductCateAll ?? new MDataTable();
+
+    //品牌分类
+    MDataTable curDtBrandAll = ViewBag.DtBrandAll ?? new MDataTable();
+
+    //所有产品类型
+    MDataTable curDtProductTypeAll = ViewBag.DtProductTypeAll ?? new MDataTable();
+    
+    //产品类型
+    String curProductTypeCode = ViewBag.ProductTypeCode ?? "";
+
+    //运费模板
+    MDataTable curDtAllFreightTemplate = ViewBag.DtAllFreightTemplate ?? new MDataTable();
+}
+
+@section MainHeader
+{
+    <link href="/Style/v2/ueditor/themes/default/css/ueditor.min.css" rel="stylesheet" />
+    <script src="/Style/v2/ueditor/ueditor.config.js"></script>
+    <script src="/Style/v2/ueditor/ueditor.all.min.js"></script>
+    <script src="/Style/v2/ueditor/lang/zh-cn/zh-cn.js"></script>
+}
+
+@section FormBody
+{
+    
+@using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.Row}))
+{
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md12"}))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "产品名称" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputBlock}))
+            {
+                @Html.LayUiStdInput(new LayUiInputAttr() {Id = "productname", Val = curDrMainEntity.Get("productname", ""), VerifyName = "required"})
+            }
+        }
+    }
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md12" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "广告词" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdTextArea(new LayUiTextAreaAttr(){ Id = "advword", Val = curDrMainEntity.Get("advword", "") })
+            }
+        }
+    }
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "单位" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "unit", Val = curDrMainEntity.Get("unit", "")})
+            }
+        }
+    }
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "店铺分类" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+            {
+                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "shopcatename", Val = curDrMainEntity.Get("shopcatename", ""), VerifyName = "required",IsReadOnly = true})
+                @Html.ExHidden("shopcatecode", curDrMainEntity.Get("shopcatecode", ""))
+            }
+            @Html.LayUiStdButtonSmall(new LayUiButtonAttr() { Id = "btnSelectShopCate", Caption = "选择" })
+        }
+    }
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "品牌" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "brandcode", DataType = "db", DtSource = curDtBrandAll, TextFieldName = "brandname", ValueFieldName = "brandcode", Val = curDrMainEntity.Get("brandcode", "") })
+            }
+        }
+    }
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "市场价" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "marketprice", Val = curDrMainEntity.Get("marketprice", "") })
+            }
+        }
+    }
+
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "是否热销" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+            {
+                
+                @Html.LayUiStdSelect(new LayUiSelectAttr(){ Id = "ishot",Val = curDrMainEntity.Get("ishot", ""),Texts = "否|是",Values = "0|1"})
+            }
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "是否新品" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+            {
+
+                @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "isnew", Val = curDrMainEntity.Get("isnew", ""), Texts = "否|是", Values = "0|1" })
+            }
+        }
+    }
+
+
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "排序值" })
+                    using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "productorder", Val = curDrMainEntity.Get("productorder", ""), VerifyName = "" })
+            }
+        }
+    }
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "运费" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "freighttemplatecode", DataType = "db", DtSource = curDtAllFreightTemplate, TextFieldName = "freighttemplatename", ValueFieldName = "freighttemplatecode", Val = curDrMainEntity.Get("freighttemplatecode", "") })
+
+            }
+        }
+    }
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "体积" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "volume", Val = curDrMainEntity.Get("volume", ""), VerifyName = "" })
+            }
+        }
+    }
+
+    using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "重量" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "weight", Val = curDrMainEntity.Get("weight", ""), VerifyName = "" })
+            }
+        }
+    }
+
+}
+
+    <div class="layui-tab">
+        <ul class="layui-tab-title">
+            <li class="layui-this">产品图片</li>
+            <li>价格参数</li>
+            <li>内容信息</li>
+            <li>扩展属性</li>
+            <li>相关商品</li>
+        </ul>
+        <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+                <div class="layui-row">
+                    <div class="layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">产品主图</label>
+                            <div class="layui-input-block">
+                                <div class="layui-row">
+                                    @{
+                                        string mainImgUrl = curDrMainEntity.Get("mainimage", "");
+                                        if (string.IsNullOrEmpty(mainImgUrl))
+                                        {
+                                            mainImgUrl = "/upload/picupload.png";
+                                        }
+                                    }
+                                    <img src="@mainImgUrl" id="btnMainImageUpload" class="layui-upload-img adf-upload-img-btn">
+                                    @Html.Hidden("mainimage", curDrMainEntity.Get("mainimage", ""))
+                                </div>
+                                <div class="layui-row layui-btn-group">
+                                    @Html.LayUiStdButton(new LayUiButtonAttr()
+                                    {
+                                        Id = "btnMainImageDel",
+                                        Caption = "删除",
+                                        LayUiButtonSize = LayUiButtonSize.Xs,
+                                        LayUiButtonTheme = LayUiButtonTheme.Primary
+                                    })
+                                    @Html.LayUiStdButton(new LayUiButtonAttr()
+                                    {
+                                        Id = "btnMainImageView",
+                                        Caption = "查看",
+                                        LayUiButtonSize = LayUiButtonSize.Xs,
+                                        LayUiButtonTheme = LayUiButtonTheme.Primary
+                                    })
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">产品多图</label>
+                            <div class="layui-input-block">
+                                <blockquote class="layui-elem-quote layui-quote-nm" style="margin-top: 10px;">
+                                    <div class="layui-upload-list" id="listDetailImages">
+                                        @{
+                                            string detailImgUrls = curDrMainEntity.Get("detailimages", "");
+                                            List<string> listImgUrls = new List<string>();
+                                            string[] tmpImgUrls = detailImgUrls.Split(',');
+                                            listImgUrls.AddRange(tmpImgUrls);
+                                            if (tmpImgUrls.Length < 5)
+                                            {
+                                                for (int k = 0; k < 5 - tmpImgUrls.Length; k++) { listImgUrls.Add(""); }
+                                            }
+
+                                            for (int i = 0; i < 5; i++)
+                                            {
+                                                string itemImgId = "btnDetailImageUpload_" + i;
+                                                string itemDelId = "btnDetailImageDel_" + i;
+                                                string itemImgUrl = listImgUrls[i];
+                                                if (string.IsNullOrEmpty(listImgUrls[i]))
+                                                {
+                                                    itemImgUrl = "/upload/picupload.png";
+                                                }
+                                                <div class="layui-inline">
+                                                    <div class="layui-row">
+                                                        <img src="@itemImgUrl" id="@itemImgId" class="layui-upload-img adf-upload-img-btn DetailImageUpload">
+                                                    </div>
+                                                    <div class="layui-row layui-btn-group">
+                                                        @Html.LayUiStdButton(new LayUiButtonAttr()
+                                                        {
+                                                            Id = itemDelId,
+                                                            ClassName = "DetailImageDel",
+                                                            Caption = "删除",
+                                                            LayUiButtonSize = LayUiButtonSize.Xs,
+                                                            LayUiButtonTheme = LayUiButtonTheme.Primary
+                                                        })
+                                                        @Html.LayUiStdButton(new LayUiButtonAttr()
+                                                        {
+                                                            Id = itemDelId,
+                                                            ClassName = "DetailImageView",
+                                                            Caption = "查看",
+                                                            LayUiButtonSize = LayUiButtonSize.Xs,
+                                                            LayUiButtonTheme = LayUiButtonTheme.Primary
+                                                        })
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </blockquote>
+                                @Html.Hidden("detailimages", curDrMainEntity.Get("detailimages", ""))
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-row" id="btnLoadSpec">
+                    <div id="AttrDetailInfo"></div>
+                    <div id="skuInfo" class="layui-row">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-row">
+                    <div class="layui-col-xs12">
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">PC</label>
+                            <div class="layui-input-block">
+                                @Html.LayUiStdUEditor(new LayUiStdUEditorAttr()
+                                {
+                                    Id = "pccontent",
+                                    Val = curDrMainEntity.Get("pccontent", "")
+                                })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-xs12">
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">手机</label>
+                            <div class="layui-input-block">
+                                @Html.LayUiStdUEditor(new LayUiStdUEditorAttr()
+                                {
+                                    Id = "wapcontent",
+                                    Val = curDrMainEntity.Get("wapcontent", "")
+                                })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-row">
+                    <div id="ExAttrDetailInfo"></div>
+                </div>
+
+            </div>
+            <div class="layui-tab-item">
+                相关商品
+            </div>
+        </div>
+    </div>
+    
+    @Html.Hidden("detailListCount", "0")
+    @Html.Hidden("producttypecode", curProductTypeCode)
+    @Html.Hidden("productcode", curDrMainEntity.Get("productcode",""))
+}
+
+@section FormButton
+{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Id = "btnClose",
+                             Caption = "关闭",
+                             LayUiButtonTheme = LayUiButtonTheme.Normal,
+                             LayUiButtonSize = LayUiButtonSize.Default
+                         })
+}
+
+@section MainBottom
+{
+    <script>
+        //空图
+        var nullimg = "/upload/picupload.png";
+        var curDoCmd = "@curDoCmd";
+        var curProductTypeCode = "@curProductTypeCode";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'element', 'adfCommon', 'upload'],
+            function() {
+                var layer = layui.layer,
+                    form = layui.form,
+                    element = layui.element,
+                    upload = layui.upload,
+                    adfCommon = layui.adfCommon;
+
+                //自定义验证
+                form.verify({
+                    
+                });
+
+                //加载Sku
+                doGetSkuAttrDetailInfo();
+                doLoadSku();
+
+                //加载扩展属性
+                doGetExAttrDetailInfo();
+
+                /**
+                 * 加载销售属性
+                 */
+                function doGetSkuAttrDetailInfo() {
+                    if (curProductTypeCode == "") {
+                        return;
+                    }
+                    var sUrl = "@curController/GetSkuAttrDetailInfo";
+                    var param = {};
+                    param.productcode = "@curDrMainEntity.Get("productcode", "")";
+                    param.producttypecode = curProductTypeCode;
+
+                    adfCommon.ajaxSyncGet(sUrl, param, function(retData) {
+                        $("#AttrDetailInfo").html(retData);
+                        form.render();
+                    }, function() {
+                        adfCommon.alert("网络存在异常,请重试");
+                    });
+                }
+
+                /**
+                 * 加载扩展属性,不是销售
+                 */
+                function doGetExAttrDetailInfo() {
+                    if (curProductTypeCode == "") {
+                        return;
+                    }
+                    var sUrl = "@curController/GetExAttrDetailInfo";
+                    var param = {};
+                    param.productcode = "@curDrMainEntity.Get("productcode", "")";
+                    param.producttypecode = curProductTypeCode;
+
+                    adfCommon.ajaxSyncGet(sUrl, param, function(retData) {
+                        $("#ExAttrDetailInfo").html(retData);
+                        form.render();
+                    }, function() {
+                        adfCommon.alert("网络存在异常,请重试");
+                    });
+                }
+
+                /*
+                加载Sku信息
+                */
+                function doLoadSku() {
+                    var sAttrDetailInfo = "";
+                    $(".cbAttrDetail").each(function() {
+                        if ($(this).prop("checked") == true) {
+                            sAttrDetailInfo += $(this).val() + "$";
+                            sAttrDetailInfo += $(this).parent().parent().find("input[name='edtAttrDetailName']").val() +
+                                "|";
+                        }
+                    });
+
+                    var sUrl =
+                        "@curController/LoadSku?productcode=@(curDrMainEntity.Get("productcode", ""))&producttypecode=" +
+                            curProductTypeCode;
+                    var curParam = {};
+                    curParam.ProductAttrDetailInfo = sAttrDetailInfo;
+
+                    adfCommon.ajaxSyncPost(sUrl,
+                        curParam,
+                        function(retData) {
+                            $("#skuInfo").html(retData);
+                            form.render();
+
+                            //初始化sku图片相关事件
+                            initSkuImgUplad(adfCommon, upload);
+
+                            //设置当前Sku的数量
+                            $("#detailListCount").val($(".skuDetail").length);
+
+                        },
+                        function() {
+                            adfCommon.alert("网络存在异常,请重试");
+                        });
+                }
+
+
+                //提交表单
+                form.on('submit(btnSubmit)',
+                    function(obj) {
+                        var sUrl = "@curController/execute?docmd=@curDoCmd";
+                        var param = obj.field;
+
+                        param.pccontent = UE.getEditor('pccontent').getContent();
+                        param.wapcontent = UE.getEditor('wapcontent').getContent();
+
+                        //构造当前选择的所有的cbBox
+                        var sAttrDetailInfo = "";
+                        $(".cbAttrDetail").each(function() {
+                            if ($(this).prop("checked") == true) {
+                                sAttrDetailInfo += $(this).val() + "$";
+                                sAttrDetailInfo += $(this).parent().parent().find("input[name='edtAttrDetailName']")
+                                    .val() +
+                                    "|";
+                            }
+                        });
+
+                        /*得到扩展属性原值*/
+                        var sExAttrDetailInfo = "";
+                        //radio
+                        $(".ExRadio").each(function () {
+                            if ($(this).prop("checked") == true) {
+                                sExAttrDetailInfo += $(this).val() + "$";
+                                sExAttrDetailInfo += $(this).parent().find("input[name='attrdetailnamenew']")
+                                    .val() +
+                                    "|";
+                            }
+                        });
+
+                        //checkbox
+                        $(".ExCheckbox").each(function () {
+                            if ($(this).prop("checked") == true) {
+                                sExAttrDetailInfo += $(this).val() + "$";
+                                sExAttrDetailInfo += $(this).parent().find("input[name='attrdetailnamenew']")
+                                    .val() +
+                                    "|";
+                            }
+                        });
+
+                        //checkbox
+                        $(".ExInput").each(function () {
+                            sExAttrDetailInfo += $(this).attr("data") + "$";
+                            sExAttrDetailInfo += $(this).val() +
+                                "|";
+                        });
+
+                        sAttrDetailInfo += sExAttrDetailInfo;
+
+                        param.detailListCount = $(".skuDetail").length;
+                        param.ProductAttrDetailInfo = sAttrDetailInfo;
+
+                        var loadIndex = layer.load();
+                        adfCommon.ajaxAsyncPost(sUrl,
+                            param,
+                            function(retData) {
+                                layer.close(loadIndex);
+                                if (retData.RetStatus == 400) {
+                                    layer.msg(retData.RetValue);
+                                    return false;
+                                }
+
+                                adfCommon.msgDo(retData.RetValue,
+                                    function() {
+                                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                                            //刷新父级数据
+                                            parent.curRetDoCmd = retData.RetStatus;
+                                            //关闭当前窗口
+                                            //adfCommon.dlgClose();
+                                        }
+                                    });
+                            },
+                            function() {
+                                adfCommon.alert("网络存在异常,请重试");
+                            });
+                    });
+
+                $("#btnClose").click(function() {
+                    adfCommon.dlgClose();
+                });
+
+                $("body").on("click",".cbAttrDetail",function() {
+                    doLoadSku();
+                });
+
+                //选择产品分类
+                $("#btnSelectShopCate").click(function() {
+                    var sTitle = "选择地点";
+                    var sUrl = "/erp/ShopProductCate/loadonetree";
+
+                    adfCommon.dlgOpen(sTitle,
+                        sUrl,
+                        "300px",
+                        "90%",
+                        function() {
+                            var curNode = globalData.CateNode;
+                            curProductTypeCode = curNode.producttypecode;
+                            alert(curProductTypeCode);
+
+                            $("#shopcatename").val(curNode.catename);
+                            $("#shopcatecode").val(curNode.catecode);
+
+                            $("#producttypecode").val(curProductTypeCode);
+
+                            //清空相关的html
+                            $("#AttrDetailInfo").html("无");
+                            $("#skuInfo").html("无");
+
+                            //加载属性以及sku
+                            doGetSkuAttrDetailInfo();
+                            doLoadSku();
+
+                            //加载扩展属性
+                            doGetExAttrDetailInfo();
+                        });
+                });
+
+                //初始化sku信息
+                var resultInfo = "";
+                //产品主图及多图上传/删除
+                initProductImgUpload(adfCommon, upload);
+            });
+
+
+        //sku图片上传
+        function initSkuImgUplad(adfCommon, upload) {
+            var skuCount = $(".skuDetail").length;
+            if (skuCount == "") {
+                return;
+            }
+            for (var i = 0; i < skuCount; i++) {
+                var imgid = $(".btnSkuImgUpload").eq(i).attr("id");
+                adfCommon.uploadImage("#" + imgid,
+                    upload,
+                    function(retData) {
+                        console.log(retData);
+                        var objimg = this.elem;
+                        var skuimg = objimg.parent().find("input[name='img[]']");
+                        if (retData.hasOwnProperty('ServerRelativeFileName')) {
+                            var filename = retData.ServerRelativeFileName;
+                            skuimg.val(filename);
+                            objimg.prop("src", filename);
+                        }
+                    });
+            }
+
+            //删除sku图片
+            $(".btnSkuImgDel").on("click",
+                function() {
+                    var i = $(".btnSkuImgDel").index($(this));
+                    console.log(i);
+                    var skuimg = $("input[name='img[]']").eq(i);
+                    var objimg = $(".btnSkuImgUpload").eq(i);
+                    var curimg = skuimg.val();
+                    layui.use(['layer'],
+                        function() {
+                            var layer = layui.layer;
+                            if (curimg == "") {
+                                layer.msg("请先上传SKU图片");
+                                return false;
+                            }
+                            layer.confirm("确定删除SKU图片吗？",
+                                function(index) {
+                                    var param = { filename: escape(curimg) }
+                                    var url = "@curController/DelUploadFile";
+                                    $.getJSON(url,
+                                        param,
+                                        function(d) {
+                                            console.log(d);
+                                            layer.msg(d.RetValue);
+                                            if (d.RetStatus == 200) {
+                                                skuimg.val("");
+                                                objimg.attr("src", nullimg);
+                                            }
+                                            layer.close(index);
+                                        });
+                                });
+                        });
+                });
+            //放大查看sku图片
+            $(".btnSkuImgView").on("click",
+                function() {
+                    var e = $(this).parent().find('img.btnSkuImgUpload');
+                    viewImg(e);
+                });
+        }
+
+        function initProductImgUpload(adfCommon, upload) {
+            //产品主图上传
+            adfCommon.uploadImage("#btnMainImageUpload",
+                upload,
+                function(retData) {
+                    if (retData.hasOwnProperty('ServerRelativeFileName')) {
+                        var filename = retData.ServerRelativeFileName;
+                        $("#mainimage").val(filename);
+                        $("#btnMainImageUpload").prop("src", filename);
+                    }
+                });
+            //删除主图
+            $("#btnMainImageDel").on("click",
+                function() {
+                    var curimg = $("#mainimage").val();
+                    layui.use(['layer'],
+                        function() {
+                            var layer = layui.layer;
+                            if (curimg == "") {
+                                layer.msg("请先上传产品主图");
+                                return false;
+                            }
+
+                            layer.confirm("确定删除产品主图吗？",
+                                function(index) {
+                                    var param = { filename: escape(curimg) }
+                                    var url = "@curController/DelUploadFile";
+                                    $.getJSON(url,
+                                        param,
+                                        function(d) {
+                                            console.log(d);
+                                            layer.msg(d.RetValue);
+                                            if (d.RetStatus == 200) {
+                                                $("#mainimage").val("");
+                                                $("#btnMainImageUpload").attr("src", nullimg);
+                                            }
+                                            layer.close(index);
+                                        });
+                                });
+                        });
+                });
+
+            //产品多图上传
+            for (var k = 0; k < 5; k++) {
+                adfCommon.uploadImage("#btnDetailImageUpload_" + k,
+                    upload,
+                    function(retData) {
+                        var objImg = this.elem;
+                        console.log(retData);
+                        if (retData.hasOwnProperty('ServerRelativeFileName')) {
+                            var filename = retData.ServerRelativeFileName;
+                            $(objImg).attr("src", filename);
+                        }
+                        //设置隐藏的多图值
+                        SetDetailImagesValue();
+                    });
+            }
+
+            //删除产品多图
+            $(".DetailImageDel").on("click",
+                function() {
+                    var i = $(".DetailImageDel").index($(this));
+                    var curimg = $(".DetailImageUpload").eq(i).attr("src");
+                    layui.use(['layer'],
+                        function() {
+                            var layer = layui.layer;
+                            if (curimg == nullimg) {
+                                layer.msg("请先上传产品多图");
+                                return false;
+                            }
+                            layer.confirm("确定删除产品多图吗？",
+                                function(index) {
+                                    var param = { filename: escape(curimg) }
+                                    var url = "@curController/DelUploadFile";
+                                    $.getJSON(url,
+                                        param,
+                                        function(d) {
+                                            console.log(d);
+                                            layer.msg(d.RetValue);
+                                            if (d.RetStatus == 200) {
+                                                $(".DetailImageUpload").eq(i).attr("src", nullimg);
+                                            }
+                                            //设置隐藏的多图值
+                                            SetDetailImagesValue();
+                                            layer.close(index);
+                                        });
+                                });
+                        });
+                });
+
+            //放大查看产品主图及多图
+            $("#btnMainImageView,.DetailImageView").on("click",
+                function() {
+                    var e = $(this).parent().prev().find("img.layui-upload-img");
+                    viewImg(e);
+                });
+        }
+
+        //重新设置产品多图值
+        function SetDetailImagesValue() {
+            var arr = [];
+            $(".DetailImageUpload").each(function() {
+                var itemImg = $(this).attr("src");
+                if (itemImg == nullimg) {
+                    arr.push('');
+                } else {
+                    arr.push(itemImg);
+                }
+            });
+            var str = arr.join(',');
+            $("#detailimages").val(str);
+            console.log(str);
+        }
+
+        function viewImg(e) {
+            layui.use(['layer'],
+                function() {
+                    var layer = layui.layer;
+                    var imgurl = e.attr("src");
+                    if (imgurl == "" || imgurl == nullimg) {
+                        layer.msg("请先上传图片");
+                        return false;
+                    }
+                    top.layer.open({
+                        area: ['90%', '90%'],
+                        content: '<img src="' + imgurl + '" />'
+                    });
+                });
+        }
+    </script>
+}

@@ -1,0 +1,121 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/manage/loginfo";
+
+
+    //自定义参数
+    
+}
+
+@section MainHeader
+{
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">操作人:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("logusername","logusername")
+         </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索","btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    
+}
+
+@section MainTableRowTool
+{
+    
+}
+
+@section MainBottom
+{
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.RoleCode = $("#RoleCode").val();
+                sWhere.RoleName = $("#RoleName").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+            /*表格信息*/
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'logusername', width: 120, sort: true, title: '操作人' }
+                    , { field: 'logtype', width: 120, title: '日志类型' }
+                    , { field: 'logdatetime', title: '日期' }
+                    , { field: 'logip', title: 'IP' }
+                    , { field: 'logcontent', title: '日志内容' }
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+               
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            
+
+
+        });
+
+    </script>
+}
+
+
+
+

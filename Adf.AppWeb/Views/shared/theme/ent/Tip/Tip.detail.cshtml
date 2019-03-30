@@ -1,0 +1,121 @@
+﻿@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@using Decoration.Service
+@{
+
+    /******************************************************************************************
+     * 功能：实施任务详细页
+     * 2018-10-19  创建人 顾健
+     *******************************************************************************************/
+
+    /*系统参数*/
+    Layout = "../master/master.detail.cshtml";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    String curDoCmd = ViewBag.CurrentCmd;
+
+    /*当前业务*/
+    String curController = "/ent/tip";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+    MDataTable curtaskCate = ViewBag.taskCate ?? new MDataTable();
+    MDataTable currole = ViewBag.role ?? new MDataTable();
+
+
+
+}
+
+<!--页面数据-->
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "发送角色" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdSelect(new LayUiSelectAttr() { VerifyName= "rolecode", Id = "rolecode",Val=curDrMainEntity.Get("rolecode", ""), DataType = "db", Name = "rolecode", DtSource = currole, ValueFieldName = "rolecode", TextFieldName = "rolename" })
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "项目阶段" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdSelect(new LayUiSelectAttr() { VerifyName= "projectcatecode", Id = "projectcatecode", Val = curDrMainEntity.Get("projectcatecode", ""), DataType = "db", Name = "projectcatecode", DtSource = curtaskCate, ValueFieldName = "projectcatecode", TextFieldName = "catename" })
+        }
+    }
+
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "标题" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "tiptitle", Name = "tiptitle", Val = curDrMainEntity.Get("tiptitle", "") })
+        }
+    }
+    
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "内容" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+        {
+            @Html.LayUiStdTextArea(new LayUiTextAreaAttr() { Id = "tipcontent", Name = "tipcontent", Val = curDrMainEntity.Get("tipcontent", "") })
+        }
+    }
+
+    @Html.Hidden("senddatetime", curDrMainEntity.Get("senddatetime", ""))
+    @Html.Hidden("createusercode", curDrMainEntity.Get("createusercode", ""))
+    @Html.Hidden("createdatetime", curDrMainEntity.Get("createdatetime", ""))
+    @Html.Hidden("issend", curDrMainEntity.Get("issend", ""))
+    @Html.Hidden("tipcode", curDrMainEntity.Get("tipcode", ""))
+
+
+}
+
+<!--操作按钮-->
+@section FormButton
+{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save", "btnSubmit", LayUiButtonTheme.Danger)
+    <button class="save layui-btn-warm layui-btn" lay-filter="btnSubmit" lay-submit="">保存</button>
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭", LayUiButtonTheme = LayUiButtonTheme.Normal })
+}
+
+<!--js-->
+@section MainBottom
+{
+    <script>
+  
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'element', 'upload'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+            /*保存*/
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            /*关闭*/
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+        });
+    </script>
+}
+

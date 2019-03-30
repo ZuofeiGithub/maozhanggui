@@ -1,0 +1,206 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //2018.11.7 创建 王孝为
+    //前端模块 详细
+
+    //系统参数
+    Layout = "../master/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/ent/frontmodule";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+
+
+}
+
+@section MainHeader
+{
+
+}
+
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "模块名称" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "frontmodulename", Val = curDrMainEntity.Get("frontmodulename", ""), VerifyName = "required" })
+                }
+            }
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "模块图标" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "frontmoduleicon", Val = curDrMainEntity.Get("frontmoduleicon", ""), VerifyName = "required" })
+                }
+            }
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "是否显示" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "isshow", Val = curDrMainEntity.Get("isshow", "1"), VerifyName = "required", Texts = "不显示|显示", Values = "0|1"})
+                }
+            }
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "模块链接" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "frontmoduleurl", Val = curDrMainEntity.Get("frontmoduleurl", ""), VerifyName = "required" })
+                }
+            }
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "是否跳转" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "isredirect", Val = curDrMainEntity.Get("isredirect", ""), VerifyName = "required", Texts = "不跳转|跳转", Values = "0|1"})
+                }
+            }
+        }
+    }
+
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+            {
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+                {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "跳转地址" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "redirecturl", Val = curDrMainEntity.Get("redirecturl", ""), VerifyName = "required" })
+                }
+            }
+        }
+    }
+
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "模块分类" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "frontmoduletype", Val = curDrMainEntity.Get("frontmoduletype", "0"), VerifyName = "required",Texts = "项目详细页中的模块|项目状态模块", Values = "0|1"})
+                }
+            }
+        }
+    }
+
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+        {
+            @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "排序" })
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+            {
+                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "frontmoduleorder", Val = curDrMainEntity.Get("frontmoduleorder", ""), VerifyName = "required" })
+            }
+        }
+    }
+
+    @Html.ExHidden("frontmodulecode", curDrMainEntity.Get("frontmodulecode", ""))
+}
+@section FormButton
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "保存",
+    Id = "btnSubmit",
+    LayUiButtonSize = LayUiButtonSize.Default,
+    LayUiButtonTheme = LayUiButtonTheme.Warm,
+    ExtHtmlAttributes = new { lay_submit = "", lay_filter = "btnSubmit" }
+})
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭" })
+}
+@section MainBottom
+{
+    <script>
+        var productimgs = [];
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'upload'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.globalData = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            });
+
+
+    </script>
+}

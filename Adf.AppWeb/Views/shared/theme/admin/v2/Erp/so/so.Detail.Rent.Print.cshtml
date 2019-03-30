@@ -1,0 +1,279 @@
+﻿@using System.Net.Sockets
+@using System.Text
+@using Adf.Core.Form
+@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = null;
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/so";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    MDataTable curDetail = ViewBag.curDetail ?? new MDataTable();
+
+    int sotype = curDrMainEntity.Get("sotype", 0);
+    String soTypeClass = "";
+    if (sotype == 0)
+    {
+        soTypeClass = "hidesotype";
+    }
+}
+
+<html>
+<head>
+    <script src="/Style/js/jquery.min.js"></script>
+    <script src="http://localhost:8000/CLodopfuncs.js"></script>
+</head>
+<body>
+    @{
+    
+        string sono = curDrMainEntity.Get("sono", "");
+        string membername = curDrMainEntity.Get("membername", "");
+        string cellphone = curDrMainEntity.Get("cellphone", "");
+        string createdatetime = curDrMainEntity.Get<DateTime>("createdatetime", DateTime.Now).ToString("yyyy-MM-dd");
+        string summoney = curDrMainEntity.Get("summoney", "0");
+        string paymoney = curDrMainEntity.Get("paymoney", "0");
+        string payscore = curDrMainEntity.Get("payscore", "0");
+        string deposit = curDrMainEntity.Get("deposit", "0");
+        string paymenttype = curDrMainEntity.Get("paymenttype", "");
+        string deliverytime = curDrMainEntity.Get("deliverytime", "");
+        string saleusername = curDrMainEntity.Get("saleusername", "");
+
+        string memberscore = ViewBag.MemberScore;
+
+        //二维码信息
+        string socode = curDrMainEntity.Get("socode", "");
+        string qrcodeinfo = "http://erp.591zoo.com/RentErp/QRCode/Index?socode=" + HttpUtility.HtmlEncode(socode);
+    }
+
+    <div style="width: 285mm; margin: 0 auto;">
+        <div>
+            <input type="button" id="btnPreview" value="打印预览" />
+            <input type="button" id="btnClose" value="关闭窗口" onclick="window.close();" />
+        </div>
+        <div id="myPrintHead" style="margin: 0 auto;">
+            <table cellspacing="1" cellpadding="1" style="border: 0px; width: 100%; height: auto; font-size: 14px; font-weight: bold;">
+                <tr>
+                    <td colspan="3" style="font-size: 18px; font-weight: bold; text-align: center;">租赁协议</td>
+                </tr>
+                <tr>
+                    <td style="width: 33%;">订单编号：@sono</td>
+                    <td style="width: 33%;">下单时间：@createdatetime</td>
+                    <td style="width: 34%;">客户名称：@membername</td>
+                </tr>
+                <tr>
+                    <td>订单金额：@summoney</td>
+                    <td>支付金额：@paymoney</td>
+                    <td>客户电话：@cellphone</td>
+                </tr>
+                <tr>
+                    <td>支付积分：@payscore</td>
+                    <td>剩余积分：@memberscore</td>
+                    <td>租赁押金：@deposit</td>
+                </tr>
+                <tr>
+                    <td>支付方式：@paymenttype</td>
+                    <td>提货日期：@deliverytime</td>
+                    <td>提货人：<span style="display: inline; width: 100px; border: 1px solid #000; border-width: 0 0 1px 0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+                </tr>
+                <tr>
+                    <td>客服(对接人)：@saleusername</td>
+                    <td>出库人：<span style="display: inline; width: 100px; border: 1px solid #000; border-width: 0 0 1px 0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+                    <td>入库人：<span style="display: inline; width: 100px; border: 1px solid #000; border-width: 0 0 1px 0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="myPrintInfo" style="margin: 0 auto;">
+            <table border="1" cellspacing="1" cellpadding="1" style="width: 100%; font-size: 12px; border: 1 solid #000000; border-collapse: collapse">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">货号</th>
+                        <th style="width: 100px;">品名</th>
+                        <th style="width: 150px;">规格</th>
+                        <th style="width: 40px;">数量</th>
+                        <th style="width: 40px;">单位</th>
+                        <th style="width: 40px;">是否<br />
+                            促销</th>
+                        <th style="width: 70px;">单价</th>
+                        <th style="width: 80px;">金额</th>
+                        <th style="width: 90px;">租赁时间</th>
+                        <th style="width: 90px;">归还日期</th>
+                        <th style="width: 40px;">归还<br />
+                            数量</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        if (curDetail.Rows.Count > 0)
+                        {
+                            foreach (MDataRow dataRow in curDetail.Rows)
+                            {
+                                string artno = dataRow.Get("artno", "");
+                                string productname = dataRow.Get("productname", "");
+                                string skuspec = dataRow.Get("skuspec", "").Replace("null", "").Trim();
+                                string unit = dataRow.Get("unit", "");
+                                string promotion = dataRow.Get("promotion", "否");
+                                string factprice = dataRow.Get<decimal>("factprice", 0.00m).ToString("0.00");
+                                string qty = dataRow.Get<int>("qty", 0).ToString();
+                                string formdate = dataRow.Get<DateTime>("fromdate", DateTime.Now).ToString("yyyy-MM-dd");
+                                string enddate = dataRow.Get<DateTime>("enddate", DateTime.Now).ToString("yyyy-MM-dd");
+
+                                string itemTotalPrice = dataRow.Get<decimal>("subtotal", 0).ToString("0.00");
+
+                                string cxdj = dataRow.Get<decimal>("cxdj", 0.00m).ToString("0.00");
+                                string remark = dataRow.Get("remark", "");
+                                string dj = (promotion == "是" ? cxdj : factprice);
+
+                        <tr>
+                            <td style="text-align: center; width: 70px;">@artno</td>
+                            <td style="text-align: center; width: 100px;">@productname</td>
+                            <td style="text-align: center; width: 150px; word-break: break-all;">@skuspec</td>
+                            <td style="text-align: center; width: 40px;">@qty</td>
+                            <td style="text-align: center; width: 40px;">@unit</td>
+                            <td style="text-align: center; width: 40px;">@promotion</td>
+                            <td style="text-align: center; width: 70px;">@dj</td>
+                            <td style="text-align: center; width: 80px;">@itemTotalPrice</td>
+                            <td style="text-align: center; width: 90px;">从 @formdate<br />
+                                至 @enddate</td>
+                            <td style="text-align: center; width: 90px;"></td>
+                            <td style="text-align: center; width: 40px;"></td>
+                            <td>@remark</td>
+                        </tr>
+                            }
+                        }
+                    }
+
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="7" style="text-align: right;">本页合计：</td>
+                        <td tdata="subSum" format="#,##0.00" style="text-align: center; font-weight: bold;">#</td>
+                        <td colspan="4"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="myPrintFoot" style="margin: 0 auto;">
+            <div style="text-align: center; width: 100%; font-size: 12px;"><span tdata="pageNO">第#</span>/<span tdata="pageCount">#页</span></div>
+        </div>
+
+    </div>
+    <script language="javascript" type="text/javascript">
+        $(function () {
+            $("#btnPreview").on("click", function () {
+                print3();
+            });
+        });
+
+        //标准 285mm*279mm
+        function print3() {
+            var strBodyStyle = "<style>table,td { border: 1 solid #000000;border-collapse:collapse }</style>";
+            var strFormHtml = strBodyStyle + "<body>" + $("#myPrintInfo").html() + "</body>";
+            var strFootHtml = $("#myPrintFoot").html();
+
+            var left = "17mm";
+            var w = "285mm";
+            var h = "279.4mm";
+            var contentWidth = "253mm";
+            LODOP.PRINT_INITA(0, 0, w, h, "");
+            LODOP.ADD_PRINT_HTM("1mm", left, contentWidth, "100%", $("#myPrintHead").html());
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            LODOP.ADD_PRINT_TABLE("37mm", left, contentWidth, "210mm", strFormHtml);
+            LODOP.SET_PRINT_STYLEA(0, "TableHeightScope", 0);
+
+
+            LODOP.ADD_PRINT_HTM("265mm", left, contentWidth, "20mm", strFootHtml);
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            //二维码
+            LODOP.ADD_PRINT_BARCODE("8mm", "248mm", 96, 96, "QRCode", "@qrcodeinfo");
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 1);
+
+            LODOP.SET_PRINT_PAGESIZE(1, w, h, "");
+            LODOP.PREVIEW();
+        }
+
+        //标准 241mm*279mm
+        function print2() {
+            var strBodyStyle = "<style>table,td { border: 1 solid #000000;border-collapse:collapse }</style>";
+            var strFormHtml = strBodyStyle + "<body>" + $("#myPrintInfo").html() + "</body>";
+            var strFootHtml = $("#myPrintFoot").html();
+
+            var left = "15mm";
+            var w = "241mm";
+            var h = "279.4mm";
+            LODOP.PRINT_INITA(0, 0, w, h, "");
+            LODOP.ADD_PRINT_HTM("1mm", left, "212mm", "100%", $("#myPrintHead").html());
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            LODOP.ADD_PRINT_TABLE("35mm", left, "212mm", "210mm", strFormHtml);
+            LODOP.SET_PRINT_STYLEA(0, "TableHeightScope", 0);
+
+
+            LODOP.ADD_PRINT_HTM("260mm", left, "212mm", "20mm", strFootHtml);
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            //二维码
+            LODOP.ADD_PRINT_BARCODE("7mm", "206mm", 96, 96, "QRCode", "@qrcodeinfo");
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 1);
+
+            LODOP.SET_PRINT_PAGESIZE(1, w, h, "");
+            LODOP.PREVIEW();
+        }
+
+        //A4 - 297*210
+        function print1() {
+            var strBodyStyle = "<style>table,td { border: 1 solid #000000;border-collapse:collapse }</style>";
+            var strFormHtml = strBodyStyle + "<body>" + $("#myPrintInfo").html() + "</body>";
+            var strFootHtml = $("#myPrintFoot").html();
+
+            var left = "15mm";
+            LODOP.PRINT_INITA(0, 0, "297mm", "210mm", "");
+            LODOP.ADD_PRINT_HTM("1mm", left, "265mm", "100%", $("#myPrintHead").html());
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            LODOP.ADD_PRINT_TABLE("30mm", left, "265mm", "150mm", strFormHtml);
+            LODOP.SET_PRINT_STYLEA(0, "TableHeightScope", 0);
+
+
+            LODOP.ADD_PRINT_HTM("194mm", left, "265mm", "20mm", strFootHtml);
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            //二维码
+            LODOP.ADD_PRINT_BARCODE("3mm", "260mm", 96, 96, "QRCode", "@qrcodeinfo");
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 1);
+
+            LODOP.SET_PRINT_PAGESIZE(1, "297mm", "210mm", "");
+            LODOP.PREVIEW();
+        }
+
+    </script>
+</body>
+</html>

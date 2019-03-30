@@ -1,0 +1,87 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.tree.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/erp/shopproductcate";
+    String curTreeJsonData = ViewBag.TreeJsonData ?? "";
+}
+
+@section MainHeader
+{
+}
+
+@section NavTree
+{
+    <ul id="mainTree" class="ztree" style="margin-top:3px;"></ul>
+}
+
+@section MainBottom
+{
+    <script>
+        var curAreaCodes = "";
+        var curAreaNames = "";
+        var curSelectedNode;
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'adfCommon'], function() {
+            var layer = layui.layer,
+                adfCommon = layui.adfCommon;
+
+            //树click事件
+            function treeClick(event, treeId, treeNode) {
+                curSelectedNode = treeNode;
+                parent.globalData.CateNode = curSelectedNode;
+                adfCommon.dlgClose();
+            }
+
+            //初始化树的选中的节点
+            function treeInit() {
+                var zTree = $.fn.zTree.getZTreeObj("mainTree");
+            }
+
+            function zTreeOnExpand(event, treeId, treeNode) {
+                //alert(treeNode.tId + ", " + treeNode.name);
+                treeInit();
+            };
+
+
+            $(function() {
+                $("#btnSelect").click(function() {
+                    parent.globalData.CateNode = curSelectedNode;
+                    adfCommon.dlgClose();
+                });
+
+                var setting = {
+                    callback: {
+                        onClick: treeClick
+                    }
+                };
+                var zNodes = @Html.Raw(curTreeJsonData);
+
+                //加载tree
+                adfCommon.asLoadTreeData("mainTree", "catename", "catecode", "parentcode", treeClick, setting, zNodes);
+                //初始化加载Frmae
+                //doSetContent(frameUrl);
+                treeInit();
+            });
+
+
+        });
+    </script>
+}

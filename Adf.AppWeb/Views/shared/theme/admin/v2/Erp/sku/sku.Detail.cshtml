@@ -1,0 +1,199 @@
+﻿@using Adf.FrameWork.Service.LayUi
+@using Adf.RentErp.Service
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/sku";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+    
+
+    string productname = curDrMainEntity.Get("productname", "");
+    string producttype = curDrMainEntity.Get("producttype", "租");
+    string artno = curDrMainEntity.Get("artno", "");
+    string productspec = curDrMainEntity.Get("color", "") + " " + curDrMainEntity.Get("size", "") + " " + curDrMainEntity.Get("spec", "");
+    decimal saleprice = curDrMainEntity.Get<decimal>("saleprice", 0.00m);
+    int stocknum = curDrMainEntity.Get<int>("stocknum", 0);
+    int savestocknum = curDrMainEntity.Get<int>("safestocknum", 0);
+    int packingcount = curDrMainEntity.Get<int>("packingcount", 0);
+    string packingunit = curDrMainEntity.Get("packingunit", "");
+}
+@section MainHeader
+{
+
+}
+@section FormBody
+{
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-card-header-title">SKU存量调整</div>
+            </div>
+            <div class="layui-card-body" style="padding: 24px;">
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("产品名称"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    Val = productname,
+                                                    IsReadOnly = true
+                                                })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("产品类型"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    Val = producttype,
+                                                    IsReadOnly = true
+                                                })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("产品货号"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    Val = artno,
+                                                    IsReadOnly = true
+                                                })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("产品规格"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    Val = productspec.Trim(),
+                                                    IsReadOnly = true
+                                                })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("产品单价"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    Val = saleprice.ToString("0.00") + " 元",
+                                                    IsReadOnly = true
+                                                })
+                           
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("包装数量"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        PlaceHolder = "请选择整数",
+                                                        Id = "packingcount",
+                                                        Val = packingcount.ToString()
+                                                    })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("包装单位"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        Id = "packingunit",
+                                                        Val = packingunit.ToString(),
+                                                        IsReadOnly = true
+                                                    })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("安全库存数"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        Id = "savestocknum",
+                                                        Val = savestocknum.ToString(),
+                                                        IsReadOnly = true
+                                                    })
+                        }
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        @using (Html.BeginLayuiFormItem("产品存量"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        PlaceHolder = "请选择整数",
+                                                        Id = "stocknum",
+                                                        Val = stocknum.ToString(),
+                                                        VerifyName = "required",
+                                                    })
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Hidden("skucode", curDrMainEntity.Get("skucode", ""))
+}
+
+@section FormButton{
+    <button class="save layui-btn-warm layui-btn" lay-filter="btnSubmit" lay-submit="">保存</button>
+    @*@Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")*@
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Id = "btnClose",
+                             Caption = "关闭",
+                             LayUiButtonSize = LayUiButtonSize.Default,
+                             LayUiButtonTheme = LayUiButtonTheme.Normal
+                         })
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                    if (retData.RetStatus == 400) {
+                        layer.msg(retData.RetValue);
+                        return false;
+                    }
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        //刷新父级数据
+                        parent.globalData = retData;
+                        //关闭当前窗口
+                        adfCommon.dlgClose();
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+        });
+    </script>
+}

@@ -1,0 +1,251 @@
+﻿@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/renterp/rentover";
+
+
+    //自定义参数
+    
+}
+
+@section MainHeader
+{
+
+}
+
+@section MainQuery
+{
+    <div class="layui-form">
+        <div class="layui-inline">
+            <label class="layui-form-label">收款单号</label>
+            <div class="layui-inline" style="width: 130px;">
+                <input type="text" id="refundno" class="layui-input" style="padding-right: 10px;" />
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">租赁单号</label>
+            <div class="layui-inline" style="width: 130px;">
+                <input type="text" id="sono" class="layui-input" style="padding-right: 10px;" />
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-inline" style="width: 110px;">
+                @Html.LayUiStdSelect(new LayUiSelectAttr()
+                                     {
+                                         Id = "refundstatus",
+                                         Texts = "不限|待提交|已收款",
+                                         Values = "|0|1"
+                                     })
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">收款时间</label>
+            <div class="layui-inline" style="width: 210px;">
+                <input type="text" id="refunddate" placeholder="yyyy-MM-dd 至 yyyy-MM-dd" class="layui-input" style="padding-right: 10px;" />
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-inline">
+                @Html.LayUiSamllButton("搜索", "btnSearch")
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-inline">
+                @Html.LayUiSamllButton("刷新", "btnRefresh")
+            </div>
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "add", LayerUiHtmlHelper.GetEvent("add"), LayUiButtonColor.Normal)
+}
+
+@section MainTableRowTool
+{
+    {{# if(d.refundstatus == "0"){ }}
+    @*待提交*@
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "subcomit", LayerUiHtmlHelper.GetEvent("subcomit"), LayUiButtonColor.Normal)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "modify", LayerUiHtmlHelper.GetEvent("modify"), LayUiButtonColor.Warm)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "delete", LayerUiHtmlHelper.GetEvent("delete"), LayUiButtonColor.Danger)
+{{# } }}
+}
+
+@section MainBottom
+{
+
+
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon', 'laydate'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                laydate = layui.laydate,
+                adfCommon = layui.adfCommon;
+
+            //初始化时间控件
+            laydate.render({
+                elem: "#refunddate", range: "至"
+            });
+
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.refundno = $("#refundno").val();
+                sWhere.sono = $("#sono").val();
+                sWhere.refundstatus = $("#refundstatus").val();
+                sWhere.refunddate = $("#refunddate").val();
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+
+            /*表格信息*/
+
+            var colfmt_refunddate = function (d) {
+                var str = "";
+                var ss = d.refunddate.split(' ');
+                if (ss.length > 1) {
+                    str = ss[0];
+                }
+                return str;
+            }
+            var colfmt_refundstatus = function (d) {
+                var str = "";
+                if (d.refundstatus == 0) {
+                    str = "<span style='color:blue;'>待提交</span>";
+                }
+                if (d.refundstatus == 1) {
+                    str = "<span style='color:green;'>已收款</span>";
+                }
+                return str;
+            }
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' },
+                    { field: 'refundno', width: 180, title: '收款单号' },
+                    { field: 'refundmoney', width: 100, title: '收款金额' },
+                    { field: 'refunddate', width: 120, title: '收款时间', templet: colfmt_refunddate },
+                    { field: 'sono', width: 180, title: '关联租赁单' },
+                    { field: 'refundstatus', width: 90, title: '收款状态', templet: colfmt_refundstatus },
+                    { field: 'remark', title: '收款备注' },
+                    { width: 180, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    var refundcode = rowData.refundcode;
+                    var sUrl = "@curController/detail?docmd=modify&refundcode=" + refundcode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("修改租赁收款信息", sUrl, '100%', '100%', function () {
+                        if (globalData.RetStatus == 101) {
+                            reloadData();
+                        }
+                    });
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        //关闭对话框
+                        layer.close(index);
+                        var refundcode = rowData.refundcode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.refundcode = refundcode;
+                        adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 200) {
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                            }
+                        }, function () { });
+                    });
+                } else if (row.event == 'subcomit') {
+                    layer.confirm('确认收款吗?', function (index) {
+                        layer.close(index);
+                        var refundcode = rowData.refundcode;
+                        var sUrl = "@curController/execute?docmd=subcomit";
+                        var param = {};
+                        param.refundcode = refundcode;
+                        var loadIndex = layer.load(2);
+                        adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                            layer.close(loadIndex);
+                            if (retData.RetStatus != 400) {
+                                adfCommon.alert("收款成功");
+                                reloadData();
+                            } else {
+                                adfCommon.alert(retData.RetValue);
+                            }
+                        }, function () {
+
+                        });
+                    });
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                adfCommon.dlgOpen("增加租赁收款信息", sUrl, '100%', '100%', function () {
+                    if (globalData.RetStatus == "100") {
+                        reloadData();
+                    }
+                });
+            });
+
+            //刷新数据
+            $(".btnRefresh").on("click", function () {
+                reloadData();
+            });
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+        });
+
+    </script>
+}
+
+
+
+

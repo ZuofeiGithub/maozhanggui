@@ -1,0 +1,66 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //2018.10.20 创建 侯鑫辉
+    //弹窗选择企业用户
+
+    /*系统参数*/
+    Layout = "../master/master.select.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数
+    String curController = "/ent/companyuser";
+
+    String curProjectCode = ViewBag.curProjectCode;
+    string type = RequestHelper.GetQueryString("type");
+}
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' },
+                { field: 'uid', width: 170, title: '账号' },
+                { field: 'username', width: 170, title: '姓名' },
+                { field: 'cellphone', width: 170, title: '手机号' },
+                { field: 'remark', width: 170, title: '备注' }
+            ]
+        ];
+        //数据Url
+        cfg_DataUrl = "@curController/SelCompanyUserListData?projectcode=@curProjectCode";
+        //选择多列
+        cfg_isMultiy = "@type";
+        cfg_PageSize = 90;
+    </script>
+}
+
+@section WhereInfo
+{
+    cfg_Where.username = $("#username").val();
+    cfg_Where.cellphone = $("#cellphone").val();
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">姓名:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("username", "username")
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">手机号:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("cellphone", "cellphone")
+        </div>
+    </div>
+}

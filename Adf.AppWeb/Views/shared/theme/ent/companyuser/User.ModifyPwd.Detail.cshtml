@@ -1,0 +1,152 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../master/master.single.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = "modifypwd";
+    String curController = "/Ent/AdminCompanyUser";
+
+}
+
+@section MainHeader
+{
+
+}
+
+@section MainTitle{
+    修改密码
+}
+
+@section FormBody
+{
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">原密码</label>
+                <div class="layui-input-block">
+                    @Html.LayUiPassword("olduserpassword", "olduserpassword", "", "", LayerUiHtmlHelper.GetVerify("olduserpassword"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">新密码</label>
+                <div class="layui-input-block">
+                    @Html.LayUiPassword("userpassword", "userpassword", "", "", LayerUiHtmlHelper.GetVerify("userpassword"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">重复新密码</label>
+                <div class="layui-input-block">
+                    @Html.LayUiPassword("reuserpassword", "reuserpassword", "", "", LayerUiHtmlHelper.GetVerify("reuserpassword"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+}
+
+@section MainTool
+{
+    @Html.LayUiSubmitButton("确认修改")
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "重新填写",
+    Id = "btnClear",
+    LayUiButtonSize = LayUiButtonSize.Default,
+    LayUiButtonTheme = LayUiButtonTheme.Primary
+})
+}
+
+
+
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+
+            //自定义验证
+            form.verify({
+                //密码
+                olduserpassword: function (value, item) {
+                    if (value === "") {
+                        return "用户原密码不能为空";
+                    }
+                }
+                //密码
+                , userpassword: function (value, item) {
+                    if (value === "") {
+                        return "新密码不能为空";
+                    }
+                }
+                //重复密码
+            , reuserpassword: function (value, item) {
+                if (value == "") {
+                    return "重复新密码不能为空";
+                }
+
+                var tuserpassword = $("#userpassword").val();
+                if (value != tuserpassword) {
+                    return "两次新密码不相同";
+                }
+            }
+
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                    console.log(retData);
+                    if (retData.RetStatus == 400) {
+                        layer.msg(retData.RetValue);
+                        return false;
+                    }
+                    layer.msg(retData.RetValue);
+                }, function () { adfCommon.alert("网络存在异常,请重试"); });
+            });
+
+            //重新填写
+            $("#btnClear").on("click", function () {
+                $("#olduserpassword").val("");
+                $("#userpassword").val("");
+                $("#reuserpassword").val("");
+            });
+        });
+    </script>
+}
+
+

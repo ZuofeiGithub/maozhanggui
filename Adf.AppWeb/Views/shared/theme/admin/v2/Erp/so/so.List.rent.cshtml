@@ -1,0 +1,355 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/renterp/so";
+
+    int sotype = RequestHelper.GetQueryString("sotype", 0);
+    string orderstatus = RequestHelper.GetQueryString("orderstatus", "");
+    
+    //自定义参数
+    
+    
+    
+}
+
+@section MainHeader
+{
+}
+
+@section MainQuery
+{
+    <div class="layui-form">
+        <div class="layui-inline">
+            <label class="layui-form-label">订单号:</label>
+            <div class="layui-inline">
+                @Html.LayUiInput("sono", "sono")
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">会员名称:</label>
+            <div class="layui-inline">
+                @Html.LayUiInput("membername", "membername")
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">订单状态:</label>
+            <div class="layui-inline" style="width: 120px;">
+                @Html.LayUiStdSelect(new LayUiSelectAttr()
+                                     {
+                                         Id = "orderstatus",
+                                         Texts = "不限|待提交|已提交|已作废",
+                                         Values = "|0|1|-1",
+                                         Val = orderstatus
+                                     })
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-inline">
+                @Html.LayUiSamllButton("搜索", "btnSearch")
+
+                @Html.LayUiStdButton(new LayUiButtonAttr()
+                                 {
+                                     Caption = "查看物品租赁情况",
+                                     Id = "btnListRentSku",
+                                     LayUiButtonSize = LayUiButtonSize.Sm,
+                                     LayUiButtonTheme = LayUiButtonTheme.Normal
+                                 })
+            </div>
+        </div>
+    </div>
+
+}
+
+@section MainTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "add", LayerUiHtmlHelper.GetEvent("add"), LayUiButtonColor.Normal)
+}
+
+@section MainTableRowTool
+{
+    {{# if(d.iscancel == "1"){ }}
+        @*作废*@
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "view", LayerUiHtmlHelper.GetEvent("view"), LayUiButtonColor.Primary)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "copyadd", LayerUiHtmlHelper.GetEvent("copyadd"), LayUiButtonColor.Normal)
+    {{# }else{  }}
+        {{# if(d.odostatus == "1"){ }}
+            @*已提交*@
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "cancel", LayerUiHtmlHelper.GetEvent("cancel"), LayUiButtonColor.Danger)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "view", LayerUiHtmlHelper.GetEvent("view"), LayUiButtonColor.Primary)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "print", LayerUiHtmlHelper.GetEvent("print"), LayUiButtonColor.Primary)
+    {{# }else{ }}
+            @*待提交*@
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "modify", LayerUiHtmlHelper.GetEvent("modify"), LayUiButtonColor.Warm)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "subcomit", LayerUiHtmlHelper.GetEvent("subcomit"), LayUiButtonColor.Normal)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "delete", LayerUiHtmlHelper.GetEvent("delete"), LayUiButtonColor.Danger)
+{{# } }}
+        
+    {{#  } }}
+}
+
+@section MainBottom
+{
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.sono = $("#sono").val();
+                sWhere.membername = $("#membername").val();
+                sWhere.orderstatus = $("#orderstatus").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+            var colfmt_orderstatus = function (d) {
+                var str = "";
+                if (d.iscancel == 1) {
+                    str = "<span style='color:red;'>已作废</span>";
+                } else {
+                    if (d.odostatus == 1) {
+                        str = "<span style='color:green;'>已提交</span>";
+                    } else {
+                        str = "<span style='color:blue;'>待提交</span>";
+                    }
+                }
+                return str;
+            }
+            var colfmt_ispayed = function (d) {
+                var str = "";
+                if (d.ispayed == 1) {
+                    str = "<span style='color:green;'>是</span>";
+                } else {
+                    str = "<span style='color:red;'>否</span>";
+                }
+                return str;
+            }
+            var colfmt_sono = function (d) {
+                var str = "";
+                var url = "@curController/detail?docmd=view&mccode=@curGlobalModuleCode&socode=" + d.socode;
+                var ordersourcestr = (d.ordersourcestr == "线下") ? "" : " <span style='color:#09c'>[" + d.ordersourcestr + "]</span>";
+                str = "<a href='" + url + "' target='_blank' style='color:blue;'>" + d.sono + "</a>" + ordersourcestr;
+                return str;
+            }
+            /*表格信息*/
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' },
+                    { field: 'sono', width: 200, title: '租赁订单编号', fixed: 'left', templet: colfmt_sono },
+                    { field: 'membername', title: '会员名称' },
+                    { field: 'saleusername', width: 90, title: '销售人' },
+                    { field: 'paymoney', width: 90, title: '实付金额' },
+                    { field: 'summoney', width: 90, title: '订单金额' },
+                    { field: 'deposit', width: 90, title: '租赁押金' },
+                    { field: 'payscore', width: 90, title: '使用积分' },
+                    { field: 'discount', width: 90, title: '折扣金额' },
+                    { field: 'ispayed', width: 90, title: '是否支付', templet: colfmt_ispayed },
+                    { field: 'iscancel', width: 90, title: '订单状态', templet: colfmt_orderstatus },
+                    { field: 'createdatetime', width: 160, title: '下单日期' },
+                    { width: 175, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata?sotype=@sotype";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            sWhere.orderstatus = "@orderstatus";
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'view') {
+                    curRetDoCmd = "";
+                    var socode = rowData.socode;
+                    var sUrl = "@curController/detail?docmd=view&mccode=@curGlobalModuleCode&socode=" + socode;
+                    adfCommon.dlgOpen("查看订单", sUrl, '100%', '100%', function () {
+
+                    });
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        layer.close(index);
+                        var socode = rowData.socode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.socode = socode;
+                        param.shopcode = row.shopcode;
+                        adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                            layer.msg(retData.RetValue);
+                            if (retData.RetStatus == 103) {
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                            }
+                        }, function () { });
+
+                    });
+                } else if (row.event == 'subcomit') {
+                    layer.confirm('确认要提交租赁订单吗?', function (index) {
+                        layer.close(index);
+                        var socode = rowData.socode;
+                        var sUrl = "@curController/execute?docmd=subcomit";
+                        var param = {};
+                        param.socode = socode;
+                        var loadIndex = layer.load(2);
+                        adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                            layer.close(loadIndex);
+                            if (retData.RetStatus === 400) {
+                                layer.msg(retData.RetValue);
+                                return false;
+                            }
+                            layer.msg("提交成功");
+                            reloadData();
+                            return false;
+                        }, function () { });
+                    });
+                } else if (row.event == 'cancel') {
+                    layer.confirm('确认要进行作废吗?', function (index) {
+                        layer.close(index);
+                        var socode = rowData.socode;
+                        var sUrl = "@curController/execute?docmd=cancel";
+                        var param = {};
+                        param.socode = socode;
+                        adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                            if (retData.RetStatus == 200) {
+                                layer.msg("作废成功");
+                                reloadData();
+                            } else {
+                                layer.msg(retData.RetValue);
+                            }
+                        }, function () { });
+                    });
+                } else if (row.event == 'copyadd') {
+                    //复制新增
+                    layer.confirm('确定复制新增这条记录?', function (index) {
+                        layer.close(index);
+                        var socode = rowData.socode;
+                        var sUrl = "@curController/execute?docmd=copyadd";
+                        var param = {};
+                        param.socode = socode;
+                        var loadIndex = layer.load(2);
+                        adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                            layer.close(loadIndex);
+                            if (retData.RetStatus != 400) {
+                                adfCommon.alert("复制成功");
+                                reloadData();
+                            } else {
+                                adfCommon.alert(retData.RetValue);
+                            }
+                        }, function () { });
+                    });
+                } else if (row.event == 'check') {
+                    var socode = rowData.socode;
+                    var sUrl = "@curController/execute?docmd=check";
+                    var param = {};
+                    param.socode = socode;
+                    layer.confirm('确认要审批通过？', {
+                        btn: ['通过', '不通过', '关闭'] //可以无限个按钮
+                        ,
+                        btn3: function (index, layero) {
+                            layer.close(index);
+                        }
+                    }, function (index, layero) {
+
+                        param.odostatus = 2;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus != 400) {
+                                adfCommon.alert("审批成功");
+                                layer.close(index);
+                                reloadData();
+                            } else {
+                                adfCommon.alert("审批失败");
+                            }
+                        }, function () { });
+                    }, function (index) {
+                        param.odostatus = 0;
+                        adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus != 400) {
+                                adfCommon.alert("审批成功");
+                                layer.close(index);
+                                reloadData();
+                            } else {
+                                adfCommon.alert("审批失败");
+                            }
+                        }, function () { });
+                    });
+                } else if (row.event == 'print') {
+                    var url = "@curController/detail?docmd=print&socode=" + rowData.socode;
+                    window.open(url);
+                } else if (row.event == 'modify') {
+                    var socode = rowData.socode;
+                    var sUrl = "@curController/detail?docmd=modify&socode=" + socode + "&mccode=@curGlobalModuleCode&sotype=@sotype";
+                    adfCommon.dlgOpen("修改租赁订单信息", sUrl, '100%', '100%', function () {
+                        if (globalData.RetStatus == "101") {
+                            reloadData();
+                        }
+                    });
+                }
+
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode&sotype=@sotype";
+                curRetDoCmd = "";
+                adfCommon.dlgOpen("增加租赁订单信息", sUrl, '100%', '100%', function () {
+                    if (globalData.RetStatus == 100) {
+                        reloadData();
+                    }
+                });
+            });
+
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+
+            //查看物品租赁情况
+            $("#btnListRentSku").on("click", function () {
+                var sUrl = "@curController/GetListRentSku";
+                adfCommon.dlgOpen("查看物品租赁情况", sUrl, '100%', '100%', function () {
+                   
+                });
+            });
+        });
+
+    </script>
+}

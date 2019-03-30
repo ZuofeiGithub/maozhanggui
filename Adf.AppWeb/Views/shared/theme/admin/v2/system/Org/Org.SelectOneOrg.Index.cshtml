@@ -1,0 +1,65 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.tree.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/manage/org";
+    
+}
+
+@section MainHeader
+{
+    @Html.LayUiSamllButton("确认","btnSelect")
+}
+
+@section NavTree
+{
+    <ul id="mainTree" class="ztree" style="margin-top:3px;"></ul>
+}
+
+@section MainBottom
+{
+    <script>
+        var curSelectedNode;
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'adfCommon'], function () {
+            var layer = layui.layer,
+                adfCommon = layui.adfCommon;
+
+            //树click事件
+            function treeClick(event, treeId, treeNode) {
+                // 事务处理
+                curSelectedNode = treeNode;
+            }
+            /*加载树*/
+            //加载tree
+            adfCommon.loadZtree("mainTree", "/manage/org/GetTreeData?docmd=list", ['orgcode'], "orgname", "orgcode", "parentcode", treeClick, null);
+
+            $(".btnSelect").click(function () {
+                if (curSelectedNode == null) {
+                    adfCommon.alert("请选择机构");
+                    return;
+                }
+                console.log(curSelectedNode);
+                parent.globalData = curSelectedNode;
+                //选择树
+                adfCommon.dlgClose();
+            });
+        });
+    </script>
+}

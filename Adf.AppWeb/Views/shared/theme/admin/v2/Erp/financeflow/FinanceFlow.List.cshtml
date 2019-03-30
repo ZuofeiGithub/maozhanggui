@@ -1,0 +1,244 @@
+﻿@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/renterp/financeflow";
+
+
+    //自定义参数
+    
+}
+
+@section MainHeader
+{
+
+}
+
+@section MainQuery
+{
+    <div class="layui-form">
+        <div class="layui-inline">
+            <label class="layui-form-label">类型</label>
+            <div class="layui-inline" style="width: 110px;">
+                @Html.LayUiStdSelect(new LayUiSelectAttr()
+                                     {
+                                         Id = "flowtype",
+                                         Texts = "不限|入账|出账",
+                                         Values = "|1|0"
+                                     })
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">记录时间</label>
+            <div class="layui-inline" style="width: 210px;">
+                <input type="text" id="createdatetime" placeholder="yyyy-MM-dd 至 yyyy-MM-dd" class="layui-input" style="padding-right: 10px;"/>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">客户名称</label>
+            <div class="layui-inline" style="width: 130px;">
+                <input type="text" id="customername" class="layui-input" style="padding-right: 10px;" />
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-inline" style="width: 130px;">
+                <input type="text" id="remark" class="layui-input" style="padding-right: 10px;" />
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-inline">
+                @Html.LayUiSamllButton("搜 索", "btnSearch")
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-inline">
+                @Html.LayUiSamllButton("刷新", "btnRefresh")
+            </div>
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+}
+
+@section MainTableRowTool
+{
+
+}
+
+@section MainBottom
+{
+
+
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon', 'laydate'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                laydate = layui.laydate,
+                adfCommon = layui.adfCommon;
+
+            //初始化时间控件
+            laydate.render({
+                elem: "#createdatetime", range: "至"
+            });
+
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.remark = $("#remark").val();
+                sWhere.flowtype = $("#flowtype").val();
+                sWhere.createdatetime = $("#createdatetime").val();
+                sWhere.customername = $("#customername").val();
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+
+            /*表格信息*/
+
+            var colfmt_flowtypename = function (d) {
+                var str = "";
+                if (d.flowtype == 0) {
+                    str = "<span style='color:red;'>出账</span>";
+                }
+                if (d.flowtype == 1) {
+                    str = "<span style='color:blue;'>入账</span>";
+                }
+                return str;
+            }
+            var colfmt_flowmoney = function (d) {
+                var str = "";
+                if (d.flowtype == 0) {
+                    str = "<span style='color:red;'>" + d.flowmoney + "</span>";
+                }
+                if (d.flowtype == 1) {
+                    str = "<span style='color:blue;'>+" + d.flowmoney + "</span>";
+                }
+                return str;
+            }
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' },
+                    { field: 'flowtypename', width: 60, title: '类型', templet: colfmt_flowtypename },
+                    { field: 'flowmoney', width: 100, title: '金额', templet: colfmt_flowmoney },
+                    { field: 'createdatetime', width: 160, title: '记录时间' },
+                    { field: 'customername', width: 150, title: '客户名称' },
+                    { field: 'remark', title: '备注' }
+                ]
+            ];
+
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    var refundcode = rowData.refundcode;
+                    var sUrl = "@curController/detail?docmd=modify&refundcode=" + refundcode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("修改退款信息", sUrl, '100%', '100%', function () {
+                        if (globalData.RetStatus == 101) {
+                            reloadData();
+                        }
+                    });
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var refundcode = rowData.refundcode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.refundcode = refundcode;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 200) {
+                                //关闭对话框
+                                layer.close(index);
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                            }
+                        }, function () { });
+                    });
+                } else if (row.event == 'subcomit') {
+                    layer.confirm('确认退款吗?', function (index) {
+                        var refundcode = rowData.refundcode;
+                        var sUrl = "@curController/execute?docmd=subcomit";
+                        var param = {};
+                        param.refundcode = refundcode;
+                        var loadIndex = layer.load(2);
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            layer.close(loadIndex);
+                            if (retData.RetStatus != 400) {
+                                adfCommon.alert("退款成功");
+                                layer.close(index);
+                                reloadData();
+                            } else {
+                                adfCommon.alert(retData.RetValue);
+                            }
+                        }, function () {
+
+                        });
+                    });
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                adfCommon.dlgOpen("增加退款信息", sUrl, '100%', '100%', function () {
+                    if (globalData.RetStatus == "100") {
+                        reloadData();
+                    }
+                });
+            });
+
+            //刷新数据
+            $(".btnRefresh").on("click", function () {
+                reloadData();
+            });
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+        });
+
+    </script>
+}
+
+
+
+

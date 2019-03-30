@@ -1,0 +1,73 @@
+﻿@using CYQ.Data.Table
+@{
+    
+    /*@*****************************************************************************************
+ * 2018-01-18 创建 郑金国 <br />
+ * 2018-01-18 修改 郑金国 
+ ******************************************************************************************@*/
+
+    //系统参数
+    Layout = "master.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalLoginResPath = ViewBag.GlobalLoginResPath ?? "";
+}
+
+
+@section BaseHeader{
+    
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layui/css/layui.css" />
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="@curGlobalLoginResPath/css/adf-layui.css" media="all"/>
+    <link rel="stylesheet" href="@curGlobalLoginResPath/css/adf-common.css" media="all"/>
+
+    <!--ztree-->
+
+    <link href="/Style/ztree/css/zTreeStyle/zTreeStyle.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="/Style/ztree/js/jquery.ztree.all-3.5.min.js"></script>
+    <!--ztree end -->
+
+    @RenderSection("MainHeader",false)
+}
+
+	
+@section BaseBody
+{
+    <div class="layui-fluid adf-tree-page">
+        <div class="adf-tree-page-left">
+            <div class="adf-tree-scroll">
+                @RenderSection("NavTree", false)
+            </div>
+        </div>
+        <div class="adf-tree-page-right">
+            <div class="layui-card" style="margin-bottom: 0;">
+                <div class="layui-card-header adf-card-header">
+                    <div class="layui-inline">
+                        @RenderSection("MainQuery", false)
+                    </div>
+                    <div class="layui-inline" style="float: right;">
+                        <div class="adf-form-select">
+                            @RenderSection("MainTool", false)
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-card-body" style="padding: 24px;">
+                        <table class="layui-hide" id="MainGrid" lay-filter="curMainGrid"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/html" id="tableRowTool">
+        @RenderSection("MainTableRowTool", false)
+    </script>
+
+}
+
+@section BaseBottom{
+    @RenderSection("MainBottom",false)
+}

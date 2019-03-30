@@ -1,0 +1,51 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    /******************************************************************************************
+    
+     *******************************************************************************************/
+
+    /*系统参数*/
+    Layout = "../master/master.select.list.cshtml";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    MDataTable curStatus = FrameWorkService.Instance().DataDic().GetAll("projectstatus");
+    string projectcode = RequestHelper.GetQueryString("projectcode", "");
+    //页面参数
+    String curController = "/ent/project";
+}
+
+<!--查询条件-->
+
+
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'projectname', title: '项目名称' }
+            ]
+        ];
+
+        //数据Url
+        cfg_DataUrl = "@curController/GetSelectListData?projectcode=@projectcode";
+
+    </script>
+}
+
+
+
+@section WhereInfo
+{
+  
+}
+
+

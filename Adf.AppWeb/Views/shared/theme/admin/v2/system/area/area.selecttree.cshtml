@@ -1,0 +1,123 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.tree.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/manage/area";
+    String curTreeJsonData = ViewBag.TreeJsonData ?? "";
+}
+
+@section MainHeader
+{
+
+    @Html.LayUiStdButton(new LayUiButtonAttr(){Id = "btnSelect",Caption = "选择并关闭"})
+}
+
+@section NavTree
+{
+    <ul id="mainTree" class="ztree" style="margin-top:3px;"></ul>
+}
+
+@section MainBottom
+{
+    <script>
+        var curAreaCodes = "";
+        var curAreaNames = "";
+        var curSelectedNode;
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'adfCommon'], function () {
+            var layer = layui.layer,
+                adfCommon = layui.adfCommon;
+
+            //树click事件
+            function treeClick(event, treeId, treeNode) {
+                // 事务处理
+                curSelectedNode = treeNode;
+            }
+
+            //初始化树的选中的节点
+            function treeInit() {
+                var zTree = $.fn.zTree.getZTreeObj("mainTree");
+                //alert(curAreaCodes);
+                if (curAreaCodes != "") {
+                    var arrAreaCodes = curAreaCodes.split(",");
+                    for (var i = 0; i < arrAreaCodes.length; i++) {
+                        //alert(arrAreaCodes[i]);
+                        var node = zTree.getNodeByParam("areacode", arrAreaCodes[i]);
+                        zTree.checkNode(node, true, true); //指定选中ID的节点 
+                    }
+                }
+            }
+
+            function zTreeOnExpand(event, treeId, treeNode) {
+                //alert(treeNode.tId + ", " + treeNode.name);
+                treeInit();
+            };
+
+
+            $(function() {
+
+                curAreaCodes = parent.globalData.AreaCodes;
+                curAreaNames = parent.globalData.AreaNames;
+
+                
+
+                $("#btnSelect").click(function() {
+                
+                    //选择对应的节点
+                    var zTree = $.fn.zTree.getZTreeObj("mainTree");
+                    var nodes = zTree.getCheckedNodes(true);
+                    var sAreaCodes = "";
+                    var sAreaNames = "";
+                    for (var i = 0, l = nodes.length; i < l; i++) {
+                        sAreaCodes += nodes[i].areacode + ",";
+                        sAreaNames += nodes[i].areaname + ",";
+                    }
+                    //alert(sAreaCodes);
+                    if (sAreaCodes.length > 0) sAreaCodes = sAreaCodes.substring(0, sAreaCodes.length - 1);
+                    if (sAreaNames.length > 0) sAreaNames = sAreaNames.substring(0, sAreaNames.length - 1);
+
+                    parent.globalData.AreaCodes = sAreaCodes;
+                    parent.globalData.AreaNames = sAreaNames;
+
+                    adfCommon.dlgClose();
+
+                });
+
+                var setting = {
+                    check: {
+                        enable: true,
+                        chkboxType: {"Y":"", "N":""}
+                    }
+                };
+                var zNodes = @Html.Raw(curTreeJsonData);
+
+                        //加载tree
+                adfCommon.asLoadTreeData("mainTree","areaname", "areacode", "parentcode", treeClick, setting, zNodes);
+                        //初始化加载Frmae
+                        //doSetContent(frameUrl);
+            treeInit();
+                    });
+
+
+
+            
+        });
+    </script>
+}

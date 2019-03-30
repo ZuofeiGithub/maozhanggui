@@ -1,0 +1,69 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    /******************************************************************************************
+     * 功能：任务阶段弹窗
+     * 2018-10-18  创建人 王浩
+     *******************************************************************************************/
+
+    /*系统参数*/
+    Layout = "../master/master.select.list.cshtml";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    MDataTable curStatus = FrameWorkService.Instance().DataDic().GetAll("projectstatus");
+    string projectcode = RequestHelper.GetQueryString("projectcode", "");
+    //页面参数
+    String curController = "/ent/companytaskcate";
+}
+
+<!--查询条件-->
+
+
+
+@section MainHeader
+{
+    <style>
+        .layui-card-header .layui-input {
+            padding-right: 10px;
+        }
+    </style>
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'catename', width: 120, title: '分类名称' }
+                , { field: 'cateorder', title: '排序' }
+            ]
+        ];
+
+        //数据Url
+        cfg_DataUrl = "@curController/GetListSelct?projectcode=@projectcode";
+
+    </script>
+}
+
+
+
+@section WhereInfo
+{
+    cfg_Where.catename = $("#catename").val();
+}
+
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">分类名称:</label>
+        <div class="layui-inline" style="width: 120px">
+            @Html.LayUiInput("catename", "catename")
+        </div>
+    </div>
+   
+
+}

@@ -1,0 +1,65 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    /******************************************************************************************
+     * 功能：人员角色弹窗
+     * 2018-10-18  创建人 王浩
+     *******************************************************************************************/
+
+    /*系统参数*/
+    Layout = "../master/master.select.list.cshtml";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    MDataTable curStatus = FrameWorkService.Instance().DataDic().GetAll("projectstatus");
+    //页面参数
+    String curController = "/ent/companyrole";
+    string taskcode = RequestHelper.GetQueryString("taskcode");
+    string casecode = RequestHelper.GetQueryString("casecode");
+}
+
+<!--查询条件-->
+
+
+
+@section MainHeader
+{
+    <script>
+        //列Column信息
+        cfg_ColumnInfo = [
+            [
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'rolename', width: 120, title: '角色名称' }
+                , { field: 'roleorder', title: '排序' }
+            ]
+        ];
+
+        //数据Url
+        cfg_DataUrl = "@curController/SelectList?taskcode=@taskcode&casecode=@casecode";
+
+    </script>
+}
+
+
+
+@section WhereInfo
+{
+    cfg_Where.catename = $("#rolename").val();
+}
+
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">角色名称:</label>
+        <div class="layui-inline" style="width: 120px">
+            @Html.LayUiInput("rolename", "rolename")
+        </div>
+    </div>
+
+
+}

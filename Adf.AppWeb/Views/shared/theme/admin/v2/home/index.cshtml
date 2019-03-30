@@ -1,0 +1,174 @@
+﻿@using CYQ.Data.Table
+@{
+    /*@*****************************************************************************************
+    * 2018-01-18 创建 郑金国 <br />
+    * 2018-01-18 修改 郑金国
+    ******************************************************************************************@*/
+
+    /*系统参数*/
+    Layout = "../../master/v2/master.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalLoginResPath = ViewBag.GlobalLoginResPath ?? "";
+
+
+    /*页面参数*/
+    MDataTable curDtRootModule = ViewBag.DtRootModule ?? new MDataTable();
+
+}
+
+@section BaseHeader
+{
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layui/css/layui.css" />
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layuiadmin/style/login.css" media="all">
+    <link rel="stylesheet" href="@curGlobalLoginResPath/css/adf-layui.css" media="all" />
+    <link rel="stylesheet" href="@curGlobalLoginResPath/css/adf-common.css" media="all" />
+}
+
+@section BaseBody
+{
+    <div id="LAY_app">
+        <div class="layui-layout layui-layout-admin">
+            <div class="layui-header">
+                <div class="adf-logo" lay-href="/manage/home/desktop" style="height: 32px;margin: 10px 0;width: 220px;padding: 0;text-align: center;
+">
+                    <img src="/Style/v2/img/logo.png" style="width: 220px; height: 32px;" />
+                </div>
+                <ul class="layui-nav layui-layout-left" lay-filter="layadmin-layout-left">
+
+                    @{
+                        foreach (MDataRow dataRow in curDtRootModule.Rows)
+                        {
+                            <li class="layui-nav-item" lay-unselect>
+                                <a href="javascript:void(0);" data="@dataRow.Get("ModuleCode","")" class="topMenu" title="@dataRow.Get("ModuleName","")">
+                                    @dataRow.Get("ModuleName", "")
+                                </a>
+                            </li>
+                        }
+                    }
+                </ul>
+                <!-- 头部区域 -->
+                <ul class="layui-nav layui-layout-right" lay-filter="layadmin-layout-right">
+                    <li class="layui-nav-item layui-hide-xs" lay-unselect>
+                        <a lay-href="/manage/home/desktop" title="主页">
+                            <i class="anticon icon-home"></i>
+                        </a>
+                    </li>
+                    <li class="layui-nav-item" lay-unselect>
+                        <a href="javascript:;" layadmin-event="refresh" title="刷新">
+                            <i class="anticon icon-reload1"></i>
+                        </a>
+                    </li>
+                    <li class="layui-nav-item" lay-unselect style="display: none;">
+                        <a lay-href="/Default" layadmin-event="message" title="消息" lay-text="消息中心">
+                            <i class="anticon icon-bells"></i>
+                            <!-- 如果有新消息，则显示小圆点 -->
+                            <span class="layui-badge-dot"></span>
+                        </a>
+                    </li>
+                    <li class="layui-nav-item layui-hide-xs" lay-unselect>
+                        <a href="javascript:;" layadmin-event="theme" title="主题">
+                            <i class="anticon icon-setting"></i>
+                        </a>
+                    </li>
+                    <li class="layui-nav-item" lay-unselect>
+                        <a href="javascript:;">
+                            <cite>@curGlobalUserLogin.Get("username", "")</cite>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd>
+                                <a lay-href="/manage/user/myinfo">基本资料</a>
+                            </dd>
+                            <dd>
+                                <a lay-href="/manage/user/ModifyPwd">修改密码</a>
+                            </dd>
+                            <dd>
+                                <a href="javascript:void(0);" id="btnClearCache">刷新缓存</a>
+                            </dd>
+                            <hr>
+                            <dd layadmin-event="logout" style="text-align: center;">
+                                <a>退出</a>
+                            </dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item layui-hide-xs" lay-unselect>
+                        <a href="javascript:;" layadmin-event="about"><i class="layui-icon layui-icon-more-vertical"></i></a>
+                    </li>
+                    <li class="layui-nav-item layui-show-xs-inline-block layui-hide-sm" lay-unselect>
+                        <a href="javascript:;" layadmin-event="more"><i class="layui-icon layui-icon-more-vertical"></i></a>
+                    </li>
+                </ul>
+            </div>
+            <!-- 侧边菜单 -->
+            <div class="layui-side layui-side-menu">
+                <div class="layui-side-scroll">
+                    <ul class="layui-nav layui-nav-tree" lay-shrink="all" id="LAY-system-side-menu" lay-filter="layadmin-system-side-menu"></ul>
+                </div>
+            </div>
+
+            <!-- 页面标签 -->
+            <div class="layadmin-pagetabs" id="LAY_app_tabs">
+                <!--侧边菜单切换-->
+                <div class="adf-side-switch" layadmin-event="flexible">
+                    <a href="javascript:;" title="侧边伸缩">
+                        <i class="layui-icon layui-icon-shrink-right" id="LAY_app_flexible"></i>
+                    </a>
+                </div>
+                <!---->
+                <div class="layui-icon layadmin-tabs-control layui-icon-prev" layadmin-event="leftPage"></div>
+                <div class="layui-icon layadmin-tabs-control layui-icon-next" layadmin-event="rightPage"></div>
+                <div class="layui-icon layadmin-tabs-control layui-icon-down">
+                    <ul class="layui-nav layadmin-tabs-select" lay-filter="layadmin-pagetabs-nav">
+                        <li class="layui-nav-item" lay-unselect>
+                            <a href="javascript:;"></a>
+                            <dl class="layui-nav-child layui-anim-fadein">
+                                <dd layadmin-event="closeThisTabs">
+                                    <a href="javascript:;">关闭当前标签页</a>
+                                </dd>
+                                <dd layadmin-event="closeOtherTabs">
+                                    <a href="javascript:;">关闭其它标签页</a>
+                                </dd>
+                                <dd layadmin-event="closeAllTabs">
+                                    <a href="javascript:;">关闭全部标签页</a>
+                                </dd>
+                            </dl>
+                        </li>
+                    </ul>
+                </div>
+                <div class="layui-tab" lay-unauto lay-allowClose="true" lay-filter="layadmin-layout-tabs">
+                    <ul class="layui-tab-title" id="LAY_app_tabsheader">
+                        <li lay-id="console.html" class="layui-this"><i class="layui-icon layui-icon-home"></i></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 主体内容 -->
+            <div class="layui-body" id="LAY_app_body">
+                <div class="layadmin-tabsbody-item layui-show">
+                    <iframe src="/manage/home/desktop" frameborder="0" class="layadmin-iframe"></iframe>
+                </div>
+            </div>
+
+            <!-- 辅助元素，一般用于移动设备下遮罩 -->
+            <div class="layadmin-body-shade" layadmin-event="shade"></div>
+        </div>
+    </div>
+}
+
+@section BaseBottom
+{
+
+    <script>
+		    layui.config({
+		        base: '@curGlobalLoginResPath/layuiadmin/' //静态资源所在路径
+			}).extend({
+			    index: 'lib/index' //主入口模块
+			}).use('index');
+    </script>
+}
+

@@ -1,0 +1,200 @@
+﻿@using Adf.Core.Util
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = null;
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/so";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    MDataTable curDetail = ViewBag.curDetail ?? new MDataTable();
+
+    int sotype = curDrMainEntity.Get("sotype", 0);
+    String soTypeClass = "";
+    if (sotype == 0)
+    {
+        soTypeClass = "hidesotype";
+    }
+}
+
+<html>
+<head>
+    <script src="/Style/js/jquery.min.js"></script>
+    <script src="http://localhost:8000/CLodopfuncs.js"></script>
+</head>
+<body>
+
+
+    @{
+        string sono = curDrMainEntity.Get("sono", "");
+        string membername = curDrMainEntity.Get("membername", "");
+        string cellphone = curDrMainEntity.Get("cellphone", "");
+        string createdatetime = curDrMainEntity.Get<DateTime>("createdatetime", DateTime.Now).ToString("yyyy-MM-dd HH:mm:ss");
+        string summoney = curDrMainEntity.Get("summoney", "0");
+        string paymoney = curDrMainEntity.Get("paymoney", "0");
+        string payscore = curDrMainEntity.Get("payscore", "0");
+        string deposit = curDrMainEntity.Get("deposit", "0");
+        string paymenttypename = curDrMainEntity.Get("paymenttypename", "");
+    }
+    <div style="width: 241mm; margin: 0 auto;">
+        <div>
+            <input type="button" id="btnPreview" value="打印预览" />
+            <input type="button" id="btnClose" value="关闭窗口" onclick="window.close();" />
+        </div>
+        <div id="myPrintHead" style="margin: 0 auto;">
+            <table cellspacing="1" cellpadding="1" style="border: 0px; width: 100%; height: auto; font-size: 14px; font-weight: bold;">
+                <tr>
+                    <td colspan="3" style="font-size: 18px; font-weight: bold; text-align: center;">售卖出库单</td>
+                </tr>
+                <tr>
+                    <td style="width: 33%;">订单编号：@sono</td>
+                    <td style="width: 33%;">订单金额：@summoney</td>
+                    <td style="width: 34%;">支付金额：@paymoney</td>
+                </tr>
+                <tr>
+                    <td>销售日期：@createdatetime</td>
+                    <td>客户名称：@membername</td>
+                    <td>客户电话：@cellphone</td>
+                </tr>
+                <tr>
+                    <td>支付方式：@paymenttypename</td>
+                    <td>预计出库日期：<span style="display: inline; width: 100px; border: 1px solid #000; border-width: 0 0 1px 0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+                    <td>实际出库日期：<span style="display: inline; width: 100px; border: 1px solid #000; border-width: 0 0 1px 0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+                </tr>
+                <tr>
+                    <td>对接人：<span style="display: inline; width: 100px; border: 1px solid #000; border-width: 0 0 1px 0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+                    <td>出库人：<span style="display: inline; width: 100px; border: 1px solid #000; border-width: 0 0 1px 0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+                    <td>提货人：<span style="display: inline; width: 100px; border: 1px solid #000; border-width: 0 0 1px 0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="myPrintInfo" style="margin: 0 auto;">
+            <table border="1" cellspacing="1" cellpadding="1" style="width: 100%; font-size: 12px;">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">货号</th>
+                        <th style="width: 150px;">品名</th>
+                        <th>规格</th>
+                        <th style="width: 50px;">数量</th>
+                        <th style="width: 50px;">单位</th>
+                        <th style="width: 80px;">单价</th>
+                        <th style="width: 100px;">金额</th>
+                        <th style="width: 150px;">备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+
+                    
+                        if (curDetail.Rows.Count > 0)
+                        {
+                            foreach (MDataRow dataRow in curDetail.Rows)
+                            {
+                                string artno = dataRow.Get("artno", "");
+                                string productname = dataRow.Get("productname", "");
+                                string skuspec = dataRow.Get("skuspec", "").Replace("null", "").Trim();
+                                string unit = dataRow.Get("unit", "");
+                                string factprice = dataRow.Get<decimal>("factprice", 0.00m).ToString("0.00");
+                                string qty = dataRow.Get<int>("qty", 0).ToString();
+
+                                string itemTotalPrice = (ConvertHelper.ObjectToT<decimal>(factprice, 0m) * ConvertHelper.ObjectToT<decimal>(qty, 0m)).ToString("0.00");
+
+                        <tr>
+                            <td style="text-align: center;">@artno</td>
+                            <td style="text-align: center;">@productname</td>
+                            <td style="text-align: center;">@skuspec</td>
+                            <td style="text-align: center;">@qty</td>
+                            <td style="text-align: center;">@unit</td>
+                            <td style="text-align: center;">@factprice</td>
+                            <td style="text-align: center;">@itemTotalPrice</td>
+                            <td></td>
+                        </tr>
+                            }
+
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="6" style="text-align: right;">本页合计：</td>
+                        <td tdata="subSum" format="#,##0.00" style="text-align: center; font-weight: bold;">#</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="myPrintFoot" style="margin: 0 auto;">
+            <div style="text-align: center; width: 100%; font-size: 12px;"><span tdata="pageNO">第#</span>/<span tdata="pageCount">#页</span></div>
+        </div>
+    </div>
+    <script language="javascript" type="text/javascript">
+        $(function () {
+            $("#btnPreview").on("click", function () { print2(); });
+        });
+
+        function print2() {
+            var strBodyStyle = "<style>table,td { border: 1 solid #000000;border-collapse:collapse }</style>";
+            var strFormHtml = strBodyStyle + "<body>" + $("#myPrintInfo").html() + "</body>";
+            var strFootHtml = $("#myPrintFoot").html();
+
+            var left = "15mm";
+            var w = "241mm";
+            var h = "279.4mm";
+            LODOP.PRINT_INITA(0, 0, w, h, "");
+            //页眉
+            LODOP.ADD_PRINT_HTM("1mm", left, "212mm", "100%", $("#myPrintHead").html());
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            //内容
+            LODOP.ADD_PRINT_TABLE("32mm", left, "212mm", "215mm", strFormHtml);
+            LODOP.SET_PRINT_STYLEA(0, "TableHeightScope", 0);
+
+            //页脚
+            LODOP.ADD_PRINT_HTM("265mm", left, "212mm", "20mm", strFootHtml);
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            LODOP.SET_PRINT_PAGESIZE(1, w, h, "");
+            LODOP.PREVIEW();
+        }
+        function print1() {
+
+            var strBodyStyle = "<style>table,td { border: 1 solid #000000;border-collapse:collapse }</style>";
+            var strFormHtml = strBodyStyle + "<body>" + $("#myPrintInfo").html() + "</body>";
+            var strFootHtml = $("#myPrintFoot").html();
+
+            var left = "15mm";
+            LODOP.PRINT_INITA(0, 0, "297mm", "210mm", "");
+            //页眉
+            LODOP.ADD_PRINT_HTM("1mm", left, "265mm", "100%", $("#myPrintHead").html());
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            //内容
+            LODOP.ADD_PRINT_TABLE("25mm", left, "265mm", "160mm", strFormHtml);
+            LODOP.SET_PRINT_STYLEA(0, "TableHeightScope", 0);
+
+            //页脚
+            LODOP.ADD_PRINT_HTM("190mm", left, "265mm", "20mm", strFootHtml);
+            LODOP.SET_PRINT_STYLEA(0, "ItemType", 1);
+            LODOP.SET_PRINT_STYLEA(0, "Horient", 2);
+
+            LODOP.SET_PRINT_PAGESIZE(1, "297mm", "210mm", "");
+            LODOP.PREVIEW();
+
+
+        }
+    </script>
+</body>
+</html>

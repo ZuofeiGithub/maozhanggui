@@ -1,0 +1,61 @@
+﻿@using CYQ.Data.Table
+@{
+    
+    /*@*****************************************************************************************
+ * 2018-01-18 创建 郑金国 <br />
+ * 2018-01-18 修改 郑金国 
+ ******************************************************************************************@*/
+
+    //系统参数
+    Layout = "master.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalLoginResPath = ViewBag.GlobalLoginResPath ?? "";
+}
+
+
+@section BaseHeader{
+    
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layui/css/layui.css" />
+    <link rel="stylesheet" href="@curGlobalLoginResPath/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="@curGlobalLoginResPath/css/adf-layui.css" media="all"/>
+    <link rel="stylesheet" href="@curGlobalLoginResPath/css/adf-common.css" media="all"/>
+    @RenderSection("MainHeader",false)
+}
+
+	
+@section BaseBody
+{
+		<div class="layui-fluid">
+			<div class="layui-row layui-col-space15">
+				<div class="layui-col-md12">
+					<div class="layui-card">
+						<div class="layui-card-body">
+
+							<div class="layui-form" lay-filter="">
+                                @RenderSection("FormBody",false)
+
+							    <div class="layui-form-item">
+                					<div class="layui-input-block">
+                 						@RenderSection("FormButton",false)
+									</div>
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+    
+
+    @RenderSection("MainBody",false)
+}
+
+@section BaseBottom{
+    @RenderSection("MainBottom",false)
+}

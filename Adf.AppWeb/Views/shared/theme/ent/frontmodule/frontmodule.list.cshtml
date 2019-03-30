@@ -1,0 +1,164 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //2018.11.7 创建 王孝为
+    //前端模块配置页
+
+    //系统参数
+    Layout = "../master/master.list.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    //页面参数
+    String curController = "/ent/frontmodule";
+
+}
+
+@section MainHeader
+{
+ 
+}
+
+
+@section MainQuery
+{
+
+}
+
+@section MainTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "增加",
+    ClassName = "add",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "add" }
+})
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "修改",
+    ClassName = "modify",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "modify" }
+})
+
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "删除",
+    ClassName = "delete",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Danger,
+    ExtHtmlAttributes = new { lay_event = "delete" }
+})
+}
+
+@section MainBottom
+{
+    <script>
+        var curGlobalData = {};
+        var sWhere = {};
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var
+                table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+
+            //重新加载数据
+            function reloadData() {
+                //条件
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+         
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'frontmodulename', title: '模块名称' }
+                    , { field: 'frontmoduleorder', title: '模块排序' }
+                    , { width: 220, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    globalData = "";
+                    var frontmodulecode = rowData.frontmodulecode;
+                    var sUrl = "@curController/detail?docmd=modify&frontmodulecode=" + frontmodulecode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("修改信息", sUrl, '100%', '100%', function () {
+                        if (globalData == "101") { reloadData(); }
+                    });
+                }
+                else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var frontmodulecode = rowData.frontmodulecode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.frontmodulecode = frontmodulecode;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.msgDo(retData.RetValue, function () {
+                                if (retData.RetStatus == 103) { row.del(); }
+                                //关闭对话框
+                                layer.close(index);
+                            });
+                        }, function () {
+                            adfCommon.alert("网络异常");
+                        });
+                    });
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";;
+                adfCommon.dlgOpen("增加信息", sUrl, '100%', '100%', function () {
+                    if (globalData == 100) {
+                        reloadData();
+                    }
+                });
+            });
+
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+
+        });
+    </script>
+
+}

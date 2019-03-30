@@ -1,0 +1,211 @@
+﻿@using System.Text
+@using Adf.Core.Db
+@using Adf.Core.Form
+@using Adf.Core.Util
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curWfCode = ViewBag.CurrentWfCode;
+    String curSendNodeCode = "start";
+    String curController = "/demo/testapply";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+    
+}
+
+@section MainHeader
+{
+   
+}
+
+@section FormButton{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save","btnsave")
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "submitnext","btnsubmitnext")
+    @Html.LayUiStdButton(new LayUiButtonAttr(){Id = "btnClose",Caption = "关闭"})
+}
+
+@section FormBody
+{
+    @using (Html.LayUiStdCard(new LayUiCardAttr(){Title = "业务信息"}))
+   {
+       
+        
+        
+       using (Html.LayUiStdContainer(new LayUiContainerAttr(){LayUiContainerType = LayUiContainerType.FormItem}))
+       {
+           @Html.LayUiStdLabel(new LayUiLabelAttr(){Caption = "标题"})
+           using (Html.LayUiStdContainer(new LayUiContainerAttr(){LayUiContainerType = LayUiContainerType.InLine}))
+           {
+                @Html.LayUiStdInput(new LayUiInputAttr(){Id = "applytitle",Val = curDrMainEntity.Get("applytitle",""),VerifyName = "required",PlaceHolder = "请输入标题"})
+           }
+       }
+       
+       using (Html.LayUiStdContainer(new LayUiContainerAttr(){LayUiContainerType = LayUiContainerType.FormItem}))
+       {
+            @Html.LayUiStdLabel(new LayUiLabelAttr(){Caption = "申请内容"})
+           using (Html.LayUiStdContainer(new LayUiContainerAttr(){LayUiContainerType = LayUiContainerType.InLine}))
+           {
+                @Html.LayUiStdInput(new LayUiInputAttr(){Id = "applycontent", Val = curDrMainEntity.Get("applycontent",""),VerifyName = "required",PlaceHolder = "请输入申请内容"})
+           }
+       }
+       
+        using (Html.LayUiStdContainer(new LayUiContainerAttr(){LayUiContainerType = LayUiContainerType.FormItem}))
+       {
+            @Html.LayUiStdLabel(new LayUiLabelAttr(){Caption = "图片"})
+           using (Html.LayUiStdContainer(new LayUiContainerAttr(){LayUiContainerType = LayUiContainerType.InLine}))
+           {
+               <div id="imgInfo">
+
+               </div>
+            @Html.LayUiStdButton(new LayUiButtonAttr(){Id = "btnUploadImage",Caption = "上传图片"})
+           }
+       }    
+       
+               using (Html.LayUiStdContainer(new LayUiContainerAttr(){LayUiContainerType = LayUiContainerType.FormItem}))
+       {
+            @Html.LayUiStdLabel(new LayUiLabelAttr(){Caption = "控件"})
+           using (Html.LayUiStdContainer(new LayUiContainerAttr(){LayUiContainerType = LayUiContainerType.InLine}))
+           {
+               MDataTable curDtUser = DbService.GetTable("adf_user");
+               @Html.LayUiStdSelect(new LayUiSelectAttr(){DataType = "db",TextFieldName = "username",ValueFieldName = "usercode",DtSource = curDtUser})
+           }
+       }  
+       
+   }
+
+    <table class="layui-table">
+        <tr>
+            <td class="layui-width100px">姓名</td>
+            <td class="layui-width300px">@Html.LayUiStdInput(new LayUiInputAttr(){Id = "xx",ClassName = ""})</td>
+            <td class="layui-width100px"></td>
+            <td></td>
+        </tr>
+                <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+    @using (Html.LayUiStdCard(new LayUiCardAttr(){Title = "附件",Id = "BoUploadFiles"}))
+    {
+        
+    }
+
+    @using (Html.LayUiStdCard(new LayUiCardAttr(){Title = "下一节点"}))
+   {
+       <div id="wfNextInfo">
+           加载中...
+       </div>
+   }
+
+    @Html.ExHidden("sendnodecode",curSendNodeCode)
+    @Html.ExHidden("applycode",curDrMainEntity.Get("applycode",""))
+    
+
+}
+
+@section MainBottom
+{
+
+    <script>
+        
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon','upload'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                upload = layui.upload,
+                adfCommon = layui.adfCommon;
+
+            /*附件上传*/
+            var curBoCode = "@curDrMainEntity.Get("applycode","")";
+            adfCommon.loadWfUploadFiles(curBoCode, upload);
+
+            /*图片上传*/
+            adfCommon.uploadImage("#btnUploadImage", upload, function (retData) {
+                if (retData.hasOwnProperty("ServerRelativeFileName")) {
+                    $("#imgInfo").append("<img src='" + retData.ServerRelativeFileName + "' />");
+                }
+            });
+              
+            /**
+            自定义函数部分
+            */
+            function doGetNextInfo() {
+                var wfCode = "@curWfCode";
+                var sendnodecode = "@curSendNodeCode";
+
+                var sUrl = "/manage/wfservice/GetNext?wfcode=" + wfCode + "&currentnodecode=" + sendnodecode;
+                adfCommon.ajaxAsyncGet(sUrl,null,function(retInfo) {
+                    $("#wfNextInfo").html(retInfo);
+                    form.render();
+                },function() {
+                    $("#wfNextInfo").html("下一步步骤异常");
+                });
+            }
+
+            //加载下一步节点
+            doGetNextInfo();
+
+            //自定义验证
+            form.verify({
+                
+            });
+
+            //提交表单
+            form.on('submit(btnsave)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            //提交下一节点
+            form.on('submit(btnsubmitnext)', function (obj) {
+                var sUrl = "@curController/execute?docmd=submitnext";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function() {
+                adfCommon.dlgClose();
+            });
+        });
+    </script>
+}

@@ -1,0 +1,468 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/product";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+    
+    //所有的sku
+    MDataTable curDtAllSku = ViewBag.DtAllSku ?? new MDataTable();
+    
+}
+
+@section MainHeader
+{
+    <script src="/Style/v2/ueditor/ueditor.all.min.js"></script>
+}
+
+@section FormBody
+{
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">产品名称</label>
+                <div class="layui-input-block">
+                    @Html.LayUiInput("productname", "productname", curDrMainEntity.Get("productname", ""), "", LayerUiHtmlHelper.GetVerify("productname"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">广告词</label>
+                <div class="layui-input-block">
+                    @Html.LayuiTextArea("advword", curDrMainEntity.Get("advword", ""))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+
+            <div class="layui-row">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">产品分类</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("shopcatecode", "shopcatecode", curDrMainEntity.Get("shopcatecode", ""))
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">品牌</label>
+                        <div class="layui-input-block">
+                           @Html.LayUiInput("brandcode", "brandcode", curDrMainEntity.Get("brandcode", ""))
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+
+            <div class="layui-row">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">市场价格</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("marketprice", "marketprice", curDrMainEntity.Get("marketprice", ""))
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">商城价</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("saleprice1", "saleprice1", curDrMainEntity.Get("saleprice", ""))
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+
+            <div class="layui-row">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">货号</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("artno1", "artno1", curDrMainEntity.Get("artno", ""))
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">品牌</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("brandcode", "brandcode", curDrMainEntity.Get("brandcode", ""))
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+
+            <div class="layui-row">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">库存数</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("stocknum1", "stocknum1", curDrMainEntity.Get("stocknum", ""))
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">报警库存数</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("safestocknum", "safestocknum", curDrMainEntity.Get("safestocknum", ""))
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+
+            <div class="layui-row">
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">单位</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("unit", "unit", curDrMainEntity.Get("unit", ""))
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">排序值</label>
+                        <div class="layui-input-block">
+                            @Html.LayUiInput("productorder", "productorder", curDrMainEntity.Get("productorder", ""))
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="layui-tab">
+        <ul class="layui-tab-title">
+            <li class="layui-this">产品图片</li>
+            <li>规格信息</li>
+            <li>内容信息</li>
+            <li>运费管理</li> 
+            <li>相关商品</li>
+        </ul>
+        <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+                产品图片
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-row">
+                    <div class="layui-col-md9">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">产品类型</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiInput("producttypecode", "producttypecode", curDrMainEntity.Get("producttypecode", ""), "", LayerUiHtmlHelper.GetVerify("producttypecode"))
+                            </div>
+                            <div class="layui-inline">
+                                @Html.LayUiSamllButton("选择规格", "btnSelectSpec")
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div class="layui-col-md3"></div>
+                </div>
+                <div class="layui-row" id="btnLoadSpec">
+                    <!--sku信息-->
+
+                    @{
+                        foreach (MDataRow drSku in curDtAllSku.Rows)
+                        {
+  
+                        }
+                    }
+
+                    <!--sku信息结束-->
+                </div>
+
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-row">
+                    Pc详情
+                </div>
+                <div class="layui-row">
+                    @Html.LayuiUEditor("pccontent")
+                </div>
+                <div class="layui-row">
+                    手机详情
+                </div>
+                <div class="layui-row">
+                    @Html.LayuiUEditor("wapcontent")
+                </div>
+
+            </div>
+            <div class="layui-tab-item">
+                @Html.LayUiInput("freighttemplatecode", "freighttemplatecode", curDrMainEntity.Get("freighttemplatecode", ""))
+            </div>
+            <div class="layui-tab-item">
+                相关商品
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+
+
+    @Html.ExHidden("productcode",curDrMainEntity.Get("productcode", ""))
+
+    @Html.ExHidden("detailListCount","0")
+}
+
+@section MainBottom
+{
+    <script type="text/html">
+
+
+
+    </script>
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'element', 'adfCommon'], function() {
+            var layer = layui.layer,
+                form = layui.form,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+
+            //自定义验证
+            form.verify({
+                //仓库编码
+                productname: function(value, item) {
+                    if (value === "") {
+                        return "仓库编码不能为空";
+                    }
+                }
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function(obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function(retData) {
+                    adfCommon.msgDo(retData.RetValue, function() {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function() {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function() {
+                adfCommon.dlgClose();
+            });
+
+            $("#producttypecode").change(function() {
+                //alert("xx");
+                var sUrl = "";
+            });
+
+            //初始化sku信息
+            var resultInfo = "";
+
+            //--------------------------
+            function doExchange(arr) {
+                var len = arr.length;
+                console.log(len);
+                // 当数组大于等于2个的时候
+                if (len >= 2) {
+                    // 第一个数组的长度
+                    var len1 = arr[0].length;
+                    // 第二个数组的长度
+                    var len2 = arr[1].length;
+                    // 2个数组产生的组合数
+                    var lenBoth = len1 * len2;
+                    //  申明一个新数组,做数据暂存
+                    var items = new Array(lenBoth);
+                    // 申明新数组的索引
+                    var index = 0;
+                    // 2层嵌套循环,将组合放到新数组中
+                    for (var i = 0; i < len1; i++) {
+                        for (var j = 0; j < len2; j++) {
+                            items[index] = arr[0][i] + "|" + arr[1][j];
+                            index++;
+                        }
+                    }
+                    // 将新组合的数组并到原数组中
+                    var newArr = new Array(len - 1);
+                    for (var i = 2; i < arr.length; i++) {
+                        newArr[i - 1] = arr[i];
+                    }
+                    newArr[0] = items;
+                    // 执行回调
+                    return doExchange(newArr);
+                } else {
+                    return arr[0];
+                }
+            }
+
+
+            //----------------------------
+
+            $(".btnSelectSpec").click(function() {
+                var producttypecode = $("#producttypecode").val();
+                if (producttypecode == "") {
+                    adfCommon.alert("请填写类型编码");
+                    return;
+                }
+                var sUrl = "@curController/selectspec?producttypecode=" + producttypecode;
+                var sTitle = "选择规格";
+                adfCommon.dlgOpen(sTitle, sUrl, "90%", "90%", function() {
+
+                    var allSpec = globalData;
+
+                    if (allSpec.length < 1) {
+                        return;
+                    }
+
+                    //设置sku数量
+                    $("#detailListCount").val(allSpec.length);
+                    console.log(allSpec);
+
+                    var arrAll = [];
+
+                    console.log("开始执行");
+
+                    for (var i = 0; i < allSpec.length; i++) {
+                        console.log("开始执行" + i);
+
+                        if (allSpec[i].datacodes.indexOf("|") > -1) {
+                            var arrInfo = allSpec[i].datacodes.split("|");
+                            console.log(arrInfo);
+                            arrAll.push(arrInfo);
+                        } else {
+                            var arrInfo = new Array();
+                            arrInfo[0] = allSpec[i].datacodes;
+                            arrAll.push(arrInfo);
+                        }
+
+                    }
+
+                    //sku组合
+                    var arrSku = doExchange(arrAll);
+                    console.log(arrSku);
+
+                    //定义表头部分
+                   
+
+                    var sTableHeader = "<thead><tr>";
+                    for (var i = 0; i < allSpec.length; i++) {
+                        sTableHeader += "<th>" + allSpec[i].attrname + "</th>";
+                    }
+                    sTableHeader += "<th>货号</th>";
+                    sTableHeader += "<th>销售价</th>";
+                    sTableHeader += "<th>库存数</th>";
+                    sTableHeader += "<th>安全库存数</th>";
+                    sTableHeader += "</tr></thead>";
+
+                    var sTableBody = "<tbody>";
+                    sTableBody += "<tr>";
+                    for (var j = 0; j < arrSku.length; j++) {
+                        var curItem = arrSku[j];
+                        var arrItem = curItem.split("|");
+
+                        var skuspeccodes = "";
+                        for (var k = 0; k < arrItem.length; k++) {
+                            var curDetail = arrItem[k];
+                            var arrDetail = curDetail.split("$");
+                            sTableBody += "<td>" + arrDetail[arrDetail.length - 1] + "</td>";
+
+                            skuspeccodes = curDetail;
+                            //var tCodes = curDetail.substring(0, curDetail.lastIndexOf("$"));
+                            //skuspeccodes += tCodes;
+                            //if (k < arrItem.length - 1) {
+                            //    skuspeccodes += "|";
+                            //}
+
+                        }
+
+                        sTableBody += "<td><input type=\"text\" name=\"artno[]\" required  lay-verify=\"required\" autocomplete=\"off\" class=\"layui-input\"></td>";
+                        sTableBody += "<td><input type=\"text\" name=\"saleprice[]\" required  lay-verify=\"required\" autocomplete=\"off\" class=\"layui-input\"></td>";
+                        sTableBody += "<td><input type=\"text\" name=\"stocknum[]\" required  lay-verify=\"required\" autocomplete=\"off\" class=\"layui-input\"></td>";
+                        sTableBody += "<td><input type=\"text\" name=\"safestocknum[]\" required  lay-verify=\"required\" autocomplete=\"off\" class=\"layui-input\">";
+
+                        sTableBody += "<input type='hidden' name='skuspeccodes[]' value='" + curItem + "' />";
+                        sTableBody += "</td>";
+
+
+                        sTableBody += "</tr>";
+
+                    }
+                    sTableBody += "</tbody>";
+
+                    var sTableInfo = "<table class=\"layui-table\">" + sTableHeader + sTableBody + "</table>";
+
+                    $("#btnLoadSpec").html(sTableInfo);
+                    //element.init();
+                    form.render();
+                });
+
+            });
+        });
+    </script>
+}

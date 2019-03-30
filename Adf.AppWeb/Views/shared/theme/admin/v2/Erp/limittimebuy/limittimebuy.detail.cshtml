@@ -1,0 +1,284 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    /*系统参数*/
+    Layout = "../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*当前业务*/
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/erp/limittimebuy";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+}
+
+@section MainHeader
+{
+
+}
+
+
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.Row }))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "名称" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "acttitle", Val = curDrMainEntity.Get("acttitle", ""), VerifyName = "required" })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "产品" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InLine }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "productname", Val = curDrMainEntity.Get("productname", ""), VerifyName = "required" })
+                }
+                @Html.ExHidden("productcode", curDrMainEntity.Get("productcode", ""))
+                @Html.LayUiStdButtonSmall(new LayUiButtonAttr() { Id = "btnSelectProductCode", Caption = "选择" })
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "开始时间" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "begindatetime", Val = curDrMainEntity.Get("begindatetime", DateTime.Now).ToString("yyyy-MM-dd HH:mm:ss")
+                   ,ClassName = "curLayDate"})
+                }
+            }
+        }
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "结束时间" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "enddatetime", Val = curDrMainEntity.Get("enddatetime", DateTime.Now).ToString("yyyy-MM-dd HH:mm:ss"), ClassName = "curLayDate" })
+                }
+            }
+        }
+    
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md6"}))
+        {
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "状态" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdSelect(new LayUiSelectAttr() { DataType = "dic", DicCode = "limittimebuystatus", Id = "status", Val = curDrMainEntity.Get("status", "") })
+                }
+            }
+        }
+        
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "每人限购数" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "limitcount", Val = curDrMainEntity.Get("limitcount", "")})
+                }
+            }
+        }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md6"}))
+        {
+
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "排序"})
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputBlock}))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() {Id = "actorder", Val = curDrMainEntity.Get("actorder", "")})
+                }
+            }
+        }
+
+         using (Html.LayUiStdContainer(new LayUiContainerAttr() { ClassName = "layui-col-xs12 layui-col-md6" }))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.FormItem }))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "秒杀价" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputBlock }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "actprice", Val = curDrMainEntity.Get("actprice", "")})
+                }
+            }
+        }      
+    }
+
+
+    <div class="layui-tab">
+        <ul class="layui-tab-title">
+            <li class="layui-this">SKU规则</li>
+        </ul>
+
+        <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+                <table class="layui-table" id="FreightArea">
+                    <thead>
+                    <tr>
+                        <td colspan="2">规格</td>
+                        <td style="width: 100px;">原价</td>
+                        <td style="width: 100px;">现价</td>
+                        <td style="width: 100px;">库存数</td>
+                    </tr>
+                    </thead>
+                    <tbody id="detailContent">
+           
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    @Html.ExHidden("actcode", curDrMainEntity.Get("actcode", ""))
+ 
+
+}
+
+
+@section FormButton{
+     @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Id = "btnClose",
+    Caption = "关闭",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal
+})
+}
+
+
+@section MainBottom
+{
+    <script>
+        var curProductCode = "@curDrMainEntity.Get("productcode","")";
+        var curAllIndex = 0;
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'laydate'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                laydate = layui.laydate,
+                adfCommon = layui.adfCommon;
+
+            //根据产品编码得到所有的活动明细
+            function doLoadProductSku(productcode) {
+                if (productcode == "") {
+                    return;
+                }
+                var sActCode = $("#actcode").val();
+
+                var sUrl = "@curController/LoadSkuOfActProduct?actcode=" + sActCode;
+                sUrl += "&productcode=" + productcode;
+                adfCommon.ajaxSyncGet(sUrl, null, function (retData) {
+                    $("#detailContent").html(retData);
+                }, function () {
+                    alert("网络异常");
+                });
+
+            }
+
+            //加载sku
+            doLoadProductSku(curProductCode);
+
+            //自定义验证
+            form.verify({
+               
+                brandname: function (value, item) {
+                    if (value === "") {
+                        return "品牌名称不能为空";
+                    }
+                }
+            });
+
+            function initLayDate() {
+                lay('.curLayDate').each(function () {
+                    laydate.render({
+                        elem: this
+                        , trigger: 'click'
+                        ,type: 'datetime'
+                    });
+                });
+            }
+
+            initLayDate();
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    console.log(retData);
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus !=400) {
+                            //刷新父级数据
+                            //parent.curRetDoCmd = retData.RetStatus;
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            //选择发货地点
+            $("#btnSelectProductCode").click(function () {
+                var sTitle = "选择产品";
+                var sUrl = "/erp/product/select";
+
+                adfCommon.dlgOpen(sTitle,sUrl,"90%","90%",function() {
+
+                    var curProduct = globalData;
+                    $("#productname").val(curProduct.productname);
+                    $("#productcode").val(curProduct.productcode);
+
+                    //加载当前的sku信息
+                    doLoadProductSku(curProduct.productcode);
+
+                });
+            });
+        });
+
+
+    </script>
+}

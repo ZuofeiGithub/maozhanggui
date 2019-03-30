@@ -1,0 +1,52 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = null;
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/erp/limittimebuy";
+
+
+    //自定义参数
+
+    MDataTable curDtAllSkuOfActProduct = ViewBag.DtAllSkuOfActProduct ?? new MDataTable();
+
+    if (curDtAllSkuOfActProduct.Rows.Count > 0)
+    {
+        foreach (MDataRow dataRow in curDtAllSkuOfActProduct.Rows)
+        {
+              <tr>
+                  <td colspan="2">
+                      @{
+                          String spec = dataRow.Get("color","") + dataRow.Get("size","") + dataRow.Get("spec","");
+                      }
+                      @spec
+                  </td>
+                <td style="width: 100px;">@dataRow.Get("saleprice","")</td>
+                  <td style="width: 100px;">
+
+                      <input type="text" class="layui-input" name="actprice-@dataRow.Get("skucode", "")" value="@dataRow.Get("actprice", "")"/>
+                      
+                  </td>
+                <td style="width: 100px;">@dataRow.Get("stocknum","")</td>
+                <td style="width: 100px;display: none">
+                     <input type="text" class="layui-input" name="actsalecount-@dataRow.Get("skucode", "")" value="@dataRow.Get("actsalecount", "99999")"/>
+                </td>
+            </tr>
+        }
+    }
+    
+}

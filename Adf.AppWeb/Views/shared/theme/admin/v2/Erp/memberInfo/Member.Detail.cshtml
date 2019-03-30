@@ -1,0 +1,187 @@
+﻿@using Adf.Erp.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/MemberInfo";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    string extInfoMemberCode = "";
+    if (curDoCmd == "modify")
+    {
+        extInfoMemberCode = " disabled ";
+    }   
+}
+
+@section MainHeader
+{
+
+}
+
+@section FormBody
+{
+    <div class="layui-card">
+        <div class="layui-card-header">
+            <div class="layui-card-header-title">会员信息</div>
+        </div>
+        <div class="layui-card-body" style="padding: 24px;">
+            <div class="layui-row">
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("用户编码"))
+                    {
+                        @Html.LayUiInput("membercode", "membercode", curDrMainEntity.Get("membercode", ""), "", LayerUiHtmlHelper.GetVerify("membercode") + extInfoMemberCode)
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12  layui-hide">
+                    @using (Html.BeginLayuiFormItem("会员密码"))
+                    {
+                        @Html.LayUiInput("memberpassword", "memberpassword", curDrMainEntity.Get("memberpassword", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12 layui-hide">
+                    @using (Html.BeginLayuiFormItem("微信OpenId"))
+                    {
+                        @Html.LayUiInput("wxopenid", "wxopenid", curDrMainEntity.Get("wxopenid", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("会员姓名"))
+                    {
+                        @Html.LayUiInput("membername", "membername", curDrMainEntity.Get("membername", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("会员昵称"))
+                    {
+                        @Html.LayUiInput("nickname", "nickname", curDrMainEntity.Get("nickname", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("身份证号"))
+                    {
+                        @Html.LayUiInput("idcard", "idcard", curDrMainEntity.Get("idcard", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("邮箱"))
+                    {
+                        @Html.LayUiInput("email", "email", curDrMainEntity.Get("email", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("会员卡号"))
+                    {
+                        @Html.LayUiInput("cardno", "cardno", curDrMainEntity.Get("cardno", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("会员等级"))
+                    {
+                        @Html.LayUiInput("grade", "grade", curDrMainEntity.Get("grade", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("手机号码"))
+                    {
+                        @Html.LayUiInput("cellphone", "cellphone", curDrMainEntity.Get("cellphone", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("会员状态"))
+                    {
+                        @Html.LayUiSelect("isenable", "isenable", curDrMainEntity.Get("isenable", "0"), "禁用|启用", "1|0")
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("平台会员"))
+                    {
+                        @Html.LayUiSelect("isplat", "isplat", curDrMainEntity.Get("isplat", "0"), "是|否", "1|0")
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("会员描述"))
+                    {
+                        @Html.LayUiInput("memberdesc", "memberdesc", curDrMainEntity.Get("memberdesc", ""))
+                    }
+                </div>
+                <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                    @using (Html.BeginLayuiFormItem("剩余积分"))
+                    {
+                        @Html.LayuiTextBoxTips(curDrMainEntity.Get<decimal>("score", 0.00m).ToString())
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section FormButton
+{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Id = "btnClose",
+                             Caption = "关闭",
+                             LayUiButtonSize = LayUiButtonSize.Sm,
+                             LayUiButtonTheme = LayUiButtonTheme.Normal
+                         })
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+
+            //自定义验证
+            form.verify({
+                //会员编号
+                membercode: function (value, item) {
+                    if (value === "") {
+                        return "会员编号不能为空";
+                    }
+                }
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    console.log(retData);
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            //parent.curRetDoCmd = retData.RetStatus;
+                            parent.globalData = retData;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+        });
+    </script>
+}

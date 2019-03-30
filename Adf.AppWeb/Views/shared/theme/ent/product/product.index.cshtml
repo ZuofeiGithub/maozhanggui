@@ -1,0 +1,276 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //2018.10.19 创建 侯鑫辉
+    //家装商城产品信息列表
+
+    //系统参数
+    Layout = "../../admin/master/v2/master.treelist.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数
+    String curController = "/ent/product";
+
+    MDataTable curProductCate = ViewBag.curProductCate ?? new MDataTable();
+    String cateCode = "";
+    String cateName = "全部分类";
+    if (curProductCate.Rows.Count > 0)
+    {
+        foreach (var item in curProductCate.Rows)
+        {
+            cateCode += "|" + item.Get("catecode", "");
+            cateName += "|" + item.Get("catename", "");
+        }
+    }
+}
+
+@section MainHeader
+{
+    <style>
+        .rowThumbnail {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+    </style>
+}
+
+
+@section NavTree
+{
+    <ul id="mainTree" class="ztree" style="margin-top:3px;"></ul>
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">产品名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("productname", "productname")
+        </div>
+    </div>
+    @*<div class="layui-inline">
+        <label class="layui-form-label">产品类型:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdSelect(new LayUiSelectAttr()
+       {
+           Id = "catecode",
+           Name = "catecode",
+           Texts = cateName,
+           Values = cateCode,
+           Val = ""
+       })
+        </div>
+    </div>*@
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "增加",
+    ClassName = "add",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "add" }
+})
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "修改",
+    ClassName = "modify",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "modify" }
+})
+
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "删除",
+    ClassName = "delete",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Danger,
+    ExtHtmlAttributes = new { lay_event = "delete" }
+})
+}
+
+@section MainBottom
+{
+    <script>
+        var curParentCode = 'sys';
+        var curGlobalData = {};
+        var sWhere = {};
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var
+                table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //树click事件
+            function treeClick(event, treeId, treeNode) {
+                // 事务处理
+                curParentCode = treeNode.catecode;
+                reloadData();
+            }
+            //加载tree
+            adfCommon.loadZtreeAnsyc("mainTree", "/ent/productcate/GetTreeData?mccode=@curGlobalModuleCode&docmd=list", ['catecode'], "catename", "catecode", "parentcode", treeClick, null);
+
+
+            /*函数*/
+
+            //重新加载数据
+            function reloadData() {
+                //条件
+                sWhere.productname = $("#productname").val();
+                sWhere.catecode = curParentCode;
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+            /*表格信息*/
+            var colfmt_productstatus = function (d) {
+                var str = "";
+                if (d.productstatus == "0") {
+                    str = "<span style='color:red;'>隐藏</span>";
+                }
+                if (d.productstatus == "1") {
+                    str = "<span style='color:green;'>显示</span>";
+                }
+                return str;
+            }
+            var colfmt_ishot = function (d) {
+                var str = "";
+                if (d.ishot == "0") {
+                    str = "<span style='color:red;'>不推荐</span>";
+                }
+                if (d.ishot == "1") {
+                    str = "<span style='color:green;'>推荐</span>";
+                }
+                return str;
+            }
+            var colfmt_productimg = function (d) {
+                var str = "";
+                var productimgs = d.productimg;
+                if (productimgs != "")
+                {
+                    for (var i = 0; i < productimgs.split(',').length; i++)
+                    {
+                        str += "<img class='rowThumbnail' src=\"" + productimgs.split(',')[i] + "\" />";
+                    }
+                }
+                return str;
+            }
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'productname', title: '产品名称' }
+                    , { field: 'catename', title: '产品分类' }
+                    , { field: 'productimg', title: '产品图片', templet: colfmt_productimg }
+                    , { field: 'productstatus', title: '产品状态', templet: colfmt_productstatus }
+                    , { field: 'ishot',  title: '是否推荐', templet: colfmt_ishot }
+                    , { width: 220, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    globalData = "";
+                    var productcode = rowData.productcode;
+                    var sUrl = "@curController/detail?docmd=modify&productcode=" + productcode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("修改信息", sUrl, '100%', '100%', function () {
+                        if (globalData == "101") { reloadData(); }
+                    });
+                }
+                else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var productcode = rowData.productcode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.productcode = productcode;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.msgDo(retData.RetValue, function () {
+                                if (retData.RetStatus == 103) { row.del(); }
+                                //关闭对话框
+                                layer.close(index);
+                            });
+                        }, function () {
+                            adfCommon.alert("网络异常");
+                        });
+                    });
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode&catecode=" + curParentCode;
+                adfCommon.dlgOpen("增加信息", sUrl, '100%', '100%', function () {
+                    if (globalData == 100) {
+                        reloadData();
+                    }
+                });
+            });
+
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+
+            //点击小图放大
+            $(document).on("click", ".rowThumbnail", function () {
+                var imgsrc = $(this).attr("src");
+                if (imgsrc === "") {
+                    layer.msg("图片不存在");
+                    return;
+                }
+                var str = "<img src='" + imgsrc + "'>";
+                top.layer.open({
+                    area: ["90%", "90%"],
+                    content: str
+                });
+            });
+        });
+
+
+    </script>
+
+}

@@ -1,0 +1,937 @@
+﻿@using Adf.Core.Form
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using Adf.RentErp.Service
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/so";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    MDataTable curDetail = ViewBag.curDetail ?? new MDataTable();
+
+    int sotype = curDrMainEntity.Get("sotype", 0);
+    String soTypeClass = "";
+    if (sotype == 0)
+    {
+        soTypeClass = "hidesotype";
+    }
+}
+
+@section MainHeader
+{
+    <style>
+        .hidesotype {
+            display: none;
+        }
+    </style>
+}
+
+@section FormBody
+{
+
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-card-header-title">租赁订单</div>
+            </div>
+            <div class="layui-card-body" style="padding: 24px;">
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">订单编号</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "sono", PlaceHolder = "保存后生成", Val = curDrMainEntity.Get("sono", ""), IsDisabled = true })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6  layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">会员名</label>
+                            <div class="layui-input-block">
+                                <div class="layui-inline">
+                                    @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        Id = "membername",
+                                                        PlaceHolder = "请选择会员",
+                                                        Val = curDrMainEntity.Get("membername", ""),
+                                                        VerifyName = "required",
+                                                        IsReadOnly = true
+                                                    })
+                                    @Html.LayUiStdHidden("membercode", curDrMainEntity.Get("membercode", ""))
+                                </div>
+                                <div class="layui-inline">
+                                    @Html.LayUiStdButton(new LayUiButtonAttr()
+                                              {
+                                                  Caption = "选择",
+                                                  ClassName = "btnSelectMember",
+                                                  LayUiButtonTheme = LayUiButtonTheme.Normal,
+                                                  LayUiButtonSize = LayUiButtonSize.Sm
+                                              })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">销售人员</label>
+                            <div class="layui-input-block">
+                                <div class="layui-inline">
+                                    @Html.LayUiStdInput(new LayUiInputAttr()
+                                        {
+                                            Id = "saleusername",
+                                            PlaceHolder = "请选择销售人",
+                                            Val = curDrMainEntity.Get("saleusername", ""),
+                                            VerifyName = "required",
+                                            IsReadOnly = true
+                                        })
+                                    @Html.LayUiStdHidden("saleusercode", curDrMainEntity.Get("saleusercode", ""))
+                                </div>
+                                <div class="layui-inline">
+                                    @Html.LayUiStdButton(new LayUiButtonAttr()
+                                              {
+                                                  Caption = "选择",
+                                                  ClassName = "btnSelectSale",
+                                                  LayUiButtonTheme = LayUiButtonTheme.Normal,
+                                                  LayUiButtonSize = LayUiButtonSize.Sm
+                                              })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">订单金额</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        Id = "summoney",
+                                                        PlaceHolder = "请输入金额",
+                                                        Val = curDrMainEntity.Get("summoney", ""),
+                                                        IsReadOnly = true,
+                                                        VerifyName = "required"
+                                                    })
+                            </div>
+                            @Html.LayuiStdFormHints(new FormHintsAttr()
+                                                    {
+                                                        Caption = "自动计算",
+                                                        ForeColor = ""
+                                                    })
+
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">租赁押金</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "deposit", PlaceHolder = "押金", Val = curDrMainEntity.Get("deposit", "0"), VerifyName = "required|number" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">使用积分</label>
+                                <div class="layui-input-inline">
+                                    @Html.LayUiStdInput(new LayUiInputAttr() { Id = "payscore", PlaceHolder = "积分", Val = curDrMainEntity.Get("payscore", ""), VerifyName = "required|number" })
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                可用积分:<span id="canscore">@curDrMainEntity.Get("score", 0.00m)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">实付现金</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                                                    {
+                                                        Id = "paymoney",
+                                                        Val = curDrMainEntity.Get("paymoney", ""),
+                                                        VerifyName = "required|number",
+                                                        IsReadOnly = true
+                                                    })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">折扣金额</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                       {
+                           Id = "discount",
+                           PlaceHolder = "折扣金额",
+                           Val = curDrMainEntity.Get("discount", "0"),
+                           VerifyName = "required|number"
+                       })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">支付方式</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "paymenttype", Val = curDrMainEntity.Get("paymenttype", ""), DataType = "dic", DicCode = "paymenttype", VerifyName = "required" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">是否支付</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "ispayed", Texts = "否|是", Values = "0|1", Val = curDrMainEntity.Get("ispayed", "0")})
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">提货日期</label>
+                            <div class="layui-input-inline">
+                                @{
+                                    string deliverytime = curDrMainEntity.Get("deliverytime", "");
+                                    if (!String.IsNullOrEmpty(deliverytime))
+                                    {
+                                        deliverytime = curDrMainEntity.Get<DateTime>("deliverytime", DateTime.Today).ToString("yyyy-MM-dd");
+                                    }
+                                }
+                                @Html.LayUiStdInput(new LayUiInputAttr() {Id = "deliverytime", PlaceHolder = "请选择提货日期", Val = deliverytime})
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-lg4 layui-col-md6 layui-col-xs12">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">订单描述</label>
+                            <div class="layui-input-block">
+                                @Html.LayUiStdInput(new LayUiInputAttr() { Id = "sodesc", PlaceHolder = "请输入描述", Val = curDrMainEntity.Get("sodesc", "") })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--多从表-->
+                <div class="layui-tab">
+                    <ul class="layui-tab-title">
+                        <li class="layui-this">产品明细信息</li>
+                    </ul>
+                    <div class="layui-tab-content">
+                        <div class="layui-tab-item layui-show">
+
+                            <div class="layui-row">
+                                <div class="layui-col-md6">@Html.LayUiSamllButton("选择产品", "btnSelectSku")</div>
+                                <div class="layui-col-md6" style="text-align: right;">
+                                    <div class="layui-inline">批量设置租期：</div>
+                                    <div class="layui-inline" style="width: 250px;">
+                                        @Html.LayUiStdInput(new LayUiInputAttr()
+                                                            {
+                                                                Id = "plszzq",
+                                                                PlaceHolder = "点击设置租期",
+                                                                IsReadOnly = true
+                                                            })
+                                    </div>
+                                </div>
+                            </div>
+                            <form id="formDetail">
+                                <table id="detailInfo" class="layui-table" lay-even>
+                                    <colgroup>
+                                        <col width="60">
+                                        <col width="100">
+                                        <col width="100">
+                                        <col>
+                                        <col width="60">
+                                        <col width="90">
+                                        <col width="90">
+                                        <col width="90">
+                                        <col width="90">
+                                        <col width="90">
+                                        <col width="190">
+                                        <col width="90">
+                                        <col width="90">
+                                        <col width="90">
+                                        <col width="100">
+                                    </colgroup>
+                                    <thead>
+                                        <tr style="text-align: center;">
+                                            <th>操作</th>
+                                            <th>货号</th>
+                                            <th>产品</th>
+                                            <th>规格</th>
+                                            <th>单位</th>
+                                            <th>周期天数</th>
+                                            <th>是否促销</th>
+                                            <th>促销单价</th>
+                                            <th>租赁单价</th>
+                                            <th>数量</th>
+                                            <th>租期(开始至结束日期)</th>
+                                            <th>应收小计</th>
+                                            <th>单品优惠</th>
+                                            <th>实收小计</th>
+                                            <th>备注</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.ExHidden("socode", curDrMainEntity.Get("socode", ""))
+    @Html.ExHidden("shopcode", curDrMainEntity.Get("shopcode", ""))
+    @Html.ExHidden("sotype", curDrMainEntity.Get("sotype", "0"))
+    @Html.ExHidden("detailListCount", "0")
+}
+
+@section FormButton{
+    @{
+        if (curDoCmd != "view")
+        {
+        @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+        }
+        else
+        {
+            if (curDrMainEntity.Get<int>("iscancel", 0) == 0)
+            {
+        @Html.LayUiStdButton(new LayUiButtonAttr()
+   {
+       Id = "btnPrint",
+       Caption = "打印",
+       LayUiButtonTheme = LayUiButtonTheme.Normal,
+       LayUiButtonSize = LayUiButtonSize.Sm
+   })
+            }
+        }
+    }
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Id = "btnClose",
+    Caption = "关闭",
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    LayUiButtonSize = LayUiButtonSize.Default
+})
+}
+
+@section MainBottom
+{
+    <script>
+        var artnoList = []; //已选中的货号集合
+        var addskuList = []; //本次要加入列表中的sku集合
+
+        //初始化填充已经选择的产品
+        $(function () {
+            var docmd = "@curDoCmd";
+            if (docmd == "view") {
+                $(".btnSelectSku,.btnSelectMember,.btnSelectSale,.btnDeleteRow").hide();
+            }
+        });
+
+        //下拉选择是否促销
+        function getSelectUI(name, texts, val) {
+            var html = "";
+            html += "<select name='" + name + "' class='rowSfcx'>";
+            var items = texts.split('|');
+            for (var i = 0; i < items.length; i++) {
+                var sel = (val === items[i] ? "selected" : "");
+                html += "<option value='" + items[i] + "' " + sel + ">" + items[i] + "</option>";
+            }
+            html += "</select>";
+            return html;
+        }
+
+        //行数据
+        function GetRowHtml(sku) {
+            var sl = $.isNumeric(sku.qty) ? Number(sku.qty) : 0;
+            var cxdj = $.isNumeric(sku.cxdj) ? Number(sku.cxdj) : 0;
+            var dj = sku.factprice;
+            var remark = sku.remark;
+            var fromenddate = "";
+            if (sku.fromdate != "" && sku.enddate != "") {
+                fromenddate = sku.fromdate.split(" ")[0] + " 至 " + sku.enddate.split(" ")[0];
+            }
+            var ysxj = Number(sku.ysxj);
+            var dpyh = Number(sku.dpyh);
+            var ssxj = sku.subtotal;
+
+            var selectPromotion = getSelectUI("promotion", "否|是", sku.promotion);
+            var cxdj_readonly = (sku.promotion == "是" ? "" : "disabled");
+
+            var rowHtml = "<tr>";
+            rowHtml += "<td>";
+            rowHtml += "<input type='button' class='layui-btn layui-btn-normal layui-btn-sm btnDeleteRow' value='删除' />";
+            rowHtml += "<input type='hidden' name='skucode' value='" + sku.skucode + "' />";
+            rowHtml += "<input type='hidden' name='productcode' value='" + sku.productcode + "' />";
+            rowHtml += "<input type='hidden' name='skuspec' value='" + sku.skuspec + "' />";
+            rowHtml += "<input type='hidden' name='productname' value='" + sku.productname + "' />";
+            rowHtml += "<input type='hidden' name='cycledays' class='rowZqts' value='" + sku.cycledays + "' />";
+            rowHtml += "</td>";
+            rowHtml += "<td>" + sku.artno + "</td>";
+            rowHtml += "<td>" + sku.productname + "</td>";
+            rowHtml += "<td>" + sku.skuspec + "</td>";
+            rowHtml += "<td>" + sku.unit + "</td>";
+            rowHtml += "<td>" + sku.cycledays + "</td>";
+            rowHtml += "<td>" + selectPromotion + "</td>";
+            rowHtml += "<td><input name='cxdj' value='" + cxdj + "' " + cxdj_readonly + " class='layui-input rowCxdj' lay-verify='required|number' style='width:60px;text-align:center;padding:0px;'/></td>";
+            rowHtml += "<td><input name='dj' value='" + dj + "' class='layui-input rowZldj' lay-verify='required|number' style='width:60px;text-align:center;padding:0px;' /></td>";
+            rowHtml += "<td><input name='sl' value='" + sl + "' class='layui-input rowZlsl' lay-verify='required|number' style='width:60px;text-align:center;padding:0px;' /></td>";
+            rowHtml += "<td><input name='formenddate' value='" + fromenddate + "' placeholder='yyyy-MM-dd 至 yyyy-MM-dd' class='layui-input curLayDate' style='width:190px;' /></td>";
+            rowHtml += "<td><input name='ysxj' value='" + ysxj + "' class='layui-input rowYsxj' readonly style='width:60px;text-align:center;padding:0px' /></td>";
+            rowHtml += "<td><input name='dpyh' value='" + dpyh + "' class='layui-input rowDpyh' style='width:60px;text-align:center;padding:0px' /></td>";
+            rowHtml += "<td><input name='ssxj' value='" + ssxj + "' class='layui-input rowSubTotal' readonly style='width:60px;text-align:center;padding:0px' /></td>";
+            rowHtml += "<td><input name='remark' value='" + remark + "' class='layui-input' style='width:100px;padding:0px;' /></td>";
+
+            rowHtml += "</tr>";
+            return rowHtml;
+        }
+
+
+        //填充选择的产品 
+        function fillSoDetail(socode) {
+            if (socode == "") {
+                return;
+            }
+
+            var paramData = { socode: socode }
+            var loadIndex = layer.load(2);
+            $.getJSON("/renterp/so/GetDetailsWithKeyCode", paramData, function (retData) {
+                layer.close(loadIndex);
+                //console.log(retData);
+                if (retData.length > 0) {
+                    var rowStr = "";
+                    for (var i = 0; i < retData.length; i++) {
+                        var sku = retData[i];
+                        artnoList.push(sku.artno);
+                        rowStr += GetRowHtml(sku);
+                    }
+                    $("#detailInfo > tbody").append(rowStr);
+                }
+                //console.log(artnoList);
+                layui.use(['layer', 'form', 'laydate'], function () {
+                    var layer = layui.layer,
+                        form = layui.form,
+                        laydate = layui.laydate;
+                    $('.curLayDate').each(function (i) {
+                        laydate.render({
+                            elem: this,
+                            range: '至',
+                            done: function (value, date, endDate) {
+                                //日期选择完成后计算
+                                var params = getCalcParams($(this.elem));
+                                params.zq = value;
+                                calcChangeResult(params);
+                            }
+                        });
+                    });
+
+                    //提交前重新刷新
+                    form.render();
+                });
+
+            });
+        }
+
+        function initLayDate() {
+            layui.use(['laydate'], function () {
+                var laydate = layui.laydate;
+                $('.curLayDate').each(function (i) {
+                    laydate.render({
+                        elem: this,
+                        range: '至',
+                        done: function (value, date, endDate) {
+                            //日期选择完成后计算
+                            var params = getCalcParams($(this.elem));
+                            params.zq = value;
+                            //console.log(params)
+                            calcChangeResult(params);
+                        }
+                    });
+                });
+            });
+        }
+
+
+        var curMemberScore = 0;
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon', 'element', 'laydate'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+            //填充
+            fillSoDetail($("#socode").val());
+
+            initLayDate();
+
+            //自定义验证
+            form.verify({
+                //仓库编码
+                ispayed: function (value, item) {
+                    if (value === "-1") {
+                        return "请选择是否支付";
+                    }
+                }
+            });
+
+            //监听是否促销下拉选择
+            form.on('select', function (data) {
+                if (data.elem) {
+                    var selectname = data.elem.name;
+                    //是否促销
+                    if (selectname == "promotion") {
+                        var e = data.elem;
+                        var row = $(e).closest("tr");
+                        var cxdj = row.find(".rowCxdj");
+                        if (data.value === "是") {
+                            cxdj.removeAttr("disabled");
+                        } else {
+                            cxdj.attr("disabled", "disabled");
+                            cxdj.val(0);
+                        }
+                        form.render();
+
+                        var params = getCalcParams(e);
+                        calcChangeResult(params);
+                    }
+                }
+                //console.log(data.value); //得到被选中的值
+            });
+
+            //数量变化时的事件
+            $("body").on("change", ".rowCxdj,.rowZldj,.rowZlsl", function () {
+                var params = getCalcParams(this);
+                calcChangeResult(params);
+            });
+            $("body").on("change", ".rowDpyh", function () {
+                var row = $(this).closest("tr");
+                var ysxj = row.find("input.rowYsxj").val();
+                var dpyh = row.find("input.rowDpyh").val();
+                var objSsxj = row.find("input.rowSubTotal");
+                try {
+                    var ssxj = ysxj - dpyh;
+                    if (ssxj < 0) {
+                        ssxj = 0;
+                        alert("单品优惠必须小于就收小计");
+                    }
+                    objSsxj.val(ssxj.toFixed(2));
+                } catch (e) {
+                }
+                fillSumTotal();
+            });
+
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+
+                var curDetailListCount = $("#detailInfo>tbody>tr").length;
+                if (curDetailListCount == 0) {
+                    adfCommon.alert("请输入产品明细！");
+                    return;
+                }
+
+                var sUrl = "@curController/execute?t="+new Date().getTime()+"&docmd=@curDoCmd";
+                var param = obj.field;
+                param.detailListCount = curDetailListCount;
+
+                var rowIndex = 0;
+                var rows = $("#detailInfo > tbody > tr");
+                rows.each(function () {
+                    rowIndex = rows.index($(this));
+                    var itemData = $(this).find("select,input").serializeArray();
+                    for (var i = 0; i < itemData.length; i++) {
+                        var item = itemData[i];
+                        var keyname = item.name + "[" + rowIndex + "]";
+                        param[keyname] = item.value;
+                    }
+                });
+                //console.log(param);
+                //return false;
+                //防止重复保存
+                var loadIndex = layer.load(2);
+                $("button.save").hide();
+                adfCommon.ajaxAsyncPost(sUrl, param, function (retData) {
+                    layer.close(loadIndex);
+                    console.log(retData);
+                    if (retData.RetStatus === 400) {
+                        layer.msg(retData.RetValue);
+                        $("button.save").show();
+                        return false;
+                    }
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        adfCommon.alert(retData.RetValue);
+                        if (retData.RetStatus === 100 || retData.RetStatus === 101) {
+                            //刷新父级数据
+                            parent.globalData = retData;
+                            //parent.reloadData();
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                    $("button.save").show();
+                });
+                return false;
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+
+            //将行中SKU商品加入列表中
+            function addSelectedSku(sku) {
+                if (sku.cycledays == null) { sku.cycledays = 1; }
+                if (sku.color == null) { sku.color = ""; }
+                if (sku.size == null) { sku.size = ""; }
+                if (sku.spec == null) { sku.spec = ""; }
+                var specInfo = $.trim(sku.color + " " + sku.size + " " + sku.spec);
+
+                sku.skuspec = specInfo;
+                sku.factprice = sku.saleprice;
+                sku.cxdj = sku.cxdj;
+                sku.qty = 0;
+                sku.fromdate = "";
+                sku.ysxj = 0;
+                sku.dpyh = 0;
+                sku.subtotal = 0;
+                sku.remark = "";
+
+                var rowInfo = GetRowHtml(sku);
+                $("#detailInfo>tbody").append(rowInfo);
+            };
+            //弹窗选择产品
+            $(".btnSelectSku").click(function () {
+                var sUrl = "/renterp/sku/SelectMulti?producttype=租";
+                var sTitle = "选择产品";
+                adfCommon.dlgOpen(sTitle, sUrl, "90%", "90%", function () {
+                    initLayDate();
+                    form.render();
+                });
+                return false;
+            });
+
+
+            //选择会员名
+            $(".btnSelectMember").click(function () {
+                adfCommon.dlgSelectMember("800px", "600px", function () {
+                    console.log(globalData);
+                    $("#membername").val(globalData.membername);
+                    $("#membercode").val(globalData.membercode);
+
+                    //设置可用积分
+                    var curMemberScore = 0;
+                    if (globalData.score != null) {
+                        curMemberScore = globalData.score;
+                    }
+                    $("#canscore").html(curMemberScore);
+                });
+            });
+            //选择销售人员
+            $(".btnSelectSale").click(function () {
+                adfCommon.dlgSelectUser("800px", "600px", function () {
+                    console.log(globalData);
+                    $("#saleusername").val(globalData.username);
+                    $("#saleusercode").val(globalData.usercode);
+                    globalData = {};
+                });
+            });
+
+            //删除清单中的产品
+            $("body").on("click", ".btnDeleteRow", function () {
+                var delArtno = $(this).parent().siblings().eq(0).text();
+                var list = [];
+                for (var i = 0; i < artnoList.length; i++) {
+                    if (artnoList[i] != delArtno) {
+                        list.push(artnoList[i]);
+                    }
+                }
+                artnoList = list;
+                console.log(artnoList);
+
+                $(this).closest("tr").remove();
+                fillSumTotal();
+            });
+
+            $("#btnPrint").click(function () {
+                window.open("@curController/detail?docmd=print&socode=@curDrMainEntity.Get("socode", "")");
+            });
+
+
+        });
+
+        //设置全局变量
+        function setParentSkuInfo(rowData) {
+            layui.use(['layer'], function () {
+                var sku = rowData;
+                if ($.inArray(sku.artno, artnoList) != -1) {
+                    layer.msg("该租赁产品已选择");
+                    return false;
+                }
+                artnoList.push(sku.artno);
+                addskuList.push(rowData);
+            });
+        }
+
+        //加入选择的产品
+        function addSelectedProduct(rowData) {
+            layui.use(['layer'], function () {
+                var layer = layui.layer;
+
+                //判断是否选择过
+                var sku = rowData;
+                if ($.inArray(sku.artno, artnoList) != -1) {
+                    layer.msg("该租赁产品已选择");
+                    return false;
+                }
+                artnoList.push(sku.artno);
+                console.log(artnoList);
+
+                if (sku.cycledays == null) { sku.cycledays = 1; }
+                if (sku.color == null) { sku.color = ""; }
+                if (sku.size == null) { sku.size = ""; }
+                if (sku.spec == null) { sku.spec = ""; }
+
+                var specInfo = $.trim(sku.color + " " + sku.size + " " + sku.spec);
+
+                sku.skuspec = specInfo;
+                sku.factprice = sku.saleprice;
+                sku.cxdj = sku.cxdj;
+                sku.qty = 0;
+                sku.fromdate = "";
+                sku.ysxj = 0;
+                sku.dpyh = 0;
+                sku.subtotal = 0;
+                sku.remark = "";
+
+                var rowInfo = GetRowHtml(sku);
+                $("#detailInfo>tbody").append(rowInfo);
+
+
+            });
+        };
+
+        //计算数值变化后的结果(前端价格算法)
+        function calcChangeResult(params) {
+            //console.log(params);
+            var objYsxj = $("input.rowYsxj").eq(params.rowindex);
+            var objSsxj = $("input.rowSubTotal").eq(params.rowindex);
+
+            if (params.zq == "" || params.dj == "" || params.sl == "") {
+                objYsxj.val(0);
+                objSsxj.val(0);
+                fillSumTotal();
+                return;
+            }
+            var dd = params.zq.split(' 至 ');
+            var days = dateDiffIncludeToday(dd[0], dd[1]);
+            //console.log(days);
+
+            var dj = params.dj;
+            var sl = params.sl;
+            var zqts = params.zqts;
+            var sfcx = params.sfcx;
+            var cxdj = params.cxdj;
+            var dpyh = params.dpyh;
+
+
+            var ysxj = dj * sl * days; //正常应收小计
+            if (sfcx === '是') {
+                if (days < zqts) {
+                    ysxj = cxdj * sl;
+                } //周期天数内的
+                else {
+                    ysxj = cxdj * sl + dj * sl * (days - zqts);
+                } //周期天数外的
+            }
+            //按周期天数计算小计金额
+            if (zqts === "3") {
+                if (sfcx === "是") {
+                    //特价租赁
+                    var tmpOverMoney = 0; //超出支付
+                    if (days > zqts) {
+                        //超过周期天
+                        var bs1 = Math.floor(parseInt(days - zqts) / parseInt(zqts)); //倍数
+                        var ys1 = parseInt(days - zqts) % parseInt(zqts); //余数
+                        var xs1 = 0; //系数
+                        if (ys1 == 1) {
+                            xs1 = 0.2;
+                        }
+                        if (ys1 == 2) {
+                            xs1 = 0.5;
+                        }
+                        tmpOverMoney = dj * sl * (bs1 + xs1);
+                    }
+                    ysxj = cxdj * sl + tmpOverMoney;
+                } else {
+                    //正常租赁
+                    var tmpOverPart = 1; //超出系数
+                    if (days > zqts) {
+                        //超过周期天
+                        var bs2 = Math.floor(parseInt(days) / parseInt(zqts)); //倍数
+                        var ys2 = parseInt(days) % parseInt(zqts); //余数
+                        var xs2 = 0; //系数
+                        if (ys2 == 1) {
+                            xs2 = 0.2;
+                        }
+                        if (ys2 == 2) {
+                            xs2 = 0.5;
+                        }
+                        tmpOverPart = bs2 + xs2;
+                    }
+                    ysxj = dj * sl * tmpOverPart;
+                }
+            }
+
+            var ssxj = ysxj - Math.abs(dpyh); //实收=应收-优惠
+            if (ssxj < 0) {
+                ssxj = 0;
+            }
+            objYsxj.val(ysxj.toFixed(2));
+            objSsxj.val(ssxj.toFixed(2));
+            fillSumTotal();
+        }
+
+        //服务端计算应收小计和实收小计(暂未使用)
+        function calcChangeResultRemote(params) {
+            layui.use(['layer'], function () {
+                var layer = layui.layer;
+                var loadindex = layer.load(2);
+                $.ajax({
+                    url: "renterp/so/CalcRent",
+                    data: params,
+                    type: "POST",
+                    cache: false,
+                    dataType: "json",
+                    success: function (d) {
+                        layer.close(loadindex);
+                        //console.log(d);
+                    },
+                    error: function () { layer.msg("请求出错"); }
+                });
+            });
+        }
+
+        //重新计算所有小计金额及支付金额
+        function fillSumTotal() {
+            var allTotal = 0;
+            $("input.rowSubTotal").each(function () {
+                allTotal += parseFloat($(this).val());
+            });
+            allTotal = Math.round(allTotal * 100) / 100;
+            $("#summoney").val(allTotal.toFixed(2));
+            calcPayMoney(); //重新计算实付金额
+        }
+
+        //获取需要计算的行参数
+        function getCalcParams(e) {
+            var row = $(e).closest("tr");
+            var rowindex = $("#detailInfo > tbody > tr").index(row);
+            var zqts = row.find("td>input.rowZqts").val();
+            var sfcx = row.find("td>select.rowSfcx").val();
+            var cxdj = row.find("td>input.rowCxdj").val();
+            var dj = row.find("td>input.rowZldj").val();
+            var sl = row.find("td>input.rowZlsl").val();
+            var zq = row.find("td>input.curLayDate").val();
+            var dpyh = row.find("td>input.rowDpyh").val();
+            var p = {};
+            p.zqts = zqts; //周期天数
+            p.sfcx = sfcx; //是否促销
+            p.cxdj = cxdj; //促销单价
+            p.dj = dj; //租赁单价
+            p.sl = sl; //租赁数量
+            p.zq = zq; //租期
+            p.dpyh = dpyh; //单品优惠
+            p.rowindex = rowindex;
+            //console.log(p);
+            return p;
+        }
+
+        //日期相差天数(包含今天）
+        function dateDiffIncludeToday(startDateString, endDateString) {
+            var separator = "-"; //日期分隔符  
+            var startDates = startDateString.split(separator);
+            var endDates = endDateString.split(separator);
+            var startDate = new Date(startDates[0], startDates[1] - 1, startDates[2]);
+            var endDate = new Date(endDates[0], endDates[1] - 1, endDates[2]);
+            return parseInt(Math.abs(endDate - startDate) / 1000 / 60 / 60 / 24) + 1; //把相差的毫秒数转换为天数 
+        };
+
+        //自动计算实付金额=订单金额+租赁押金-使用积分-折扣金额
+        function calcPayMoney() {
+            var ddje = $("#summoney").val(); //订单金额
+            var zlyj = $("#deposit").val(); //租赁押金
+            var syjf = $("#payscore").val(); //使用积分
+            var zkje = $("#discount").val(); //折扣金额
+
+            var ddje = $.isNumeric(ddje) ? Math.abs(Number(ddje)) : 0;
+            var zlyj = $.isNumeric(zlyj) ? Math.abs(Number(zlyj)) : 0;
+            var syjf = $.isNumeric(syjf) ? 0 - Math.abs(Number(syjf)) : 0;
+            var zkje = $.isNumeric(zkje) ? 0 - Math.abs(Number(zkje)) : 0;
+            var sfje = ddje + zlyj + syjf + zkje;
+            $("#paymoney").val(sfje.toFixed(2));
+        }
+
+        //使用积分或租赁押金改变时重新计算实付金额
+        $("#deposit,#discount").on("change", function () {
+            calcPayMoney();
+        });
+        var tmppayscore = $("#payscore").val();
+        $("#payscore").on("change", function () {
+            var skucount = $("#detailInfo > tbody > tr").length;
+
+            if (skucount == 0) {
+                $(this).val(tmppayscore);
+                layer.msg("请选择产品再使用积分");
+                return false;
+            }
+            calcPayMoney();
+        });
+
+        //批量设置租期
+        $(function () {
+            layui.use(['laydate'], function () {
+                var laydate = layui.laydate;
+                laydate.render({
+                    elem: "#plszzq",
+                    range: '至',
+                    done: function (value, date, endDate) {
+                        if (value == "") {
+                            return false;
+                        }
+                        //console.log(value);
+                        $("input.curLayDate").val(value);
+
+                        //重新计算每一行的数据
+                        $("#detailInfo > tbody > tr").each(function () {
+                            var params = getCalcParams(this);
+                            calcChangeResult(params);
+                        });
+                    }
+                });
+
+
+                //初始提货日期控件
+                laydate.render({
+                    elem: "#deliverytime"
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,263 @@
+﻿@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using Adf.RentErp.Service
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/renterp/compensate";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+}
+
+@section MainHeader
+{
+
+}
+
+@section FormBody
+{
+
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-card-header-title">租赁赔偿</div>
+            </div>
+            <div class="layui-card-body" style="padding: 24px;">
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-md4">
+                        @using (Html.BeginLayuiFormItem("赔偿单号"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                       {
+                           PlaceHolder = "自动流水号",
+                           Id = "compensateno",
+                           Val = curDrMainEntity.Get("compensateno", ""),
+                           IsReadOnly = true
+                       })
+                        }
+                    </div>
+                    <div class="layui-col-md4">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">租赁单号</label>
+                            <div class="layui-input-inline">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               PlaceHolder = "请选择",
+                               Id = "sono",
+                               Val = curDrMainEntity.Get("sono", ""),
+                               VerifyName = "required",
+                               IsReadOnly = true
+                           })
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-md4">
+                        @using (Html.BeginLayuiFormItem("赔偿金额"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                       {
+                           PlaceHolder = "￥0.00",
+                           IsReadOnly = true,
+                           Id = "paymoney",
+                           Val = curDrMainEntity.Get("paymoney", ""),
+                           VerifyName = "required|number"
+
+                       })
+                        }
+                    </div>
+                    <div class="layui-col-md4">
+                        @using (Html.BeginLayuiFormItem("会员名称"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                                                {
+                                                    PlaceHolder = "选择租赁单后自动填充",
+                                                    IsReadOnly = true,
+                                                    Id = "membername",
+                                                    Val = curDrMainEntity.Get("membername", ""),
+                                                    VerifyName = "required"
+                                                })
+                        }
+                    </div>
+                </div>
+
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-md4">
+                        @using (Html.BeginLayuiFormItem("支付方式"))
+                        {
+                            @Html.LayUiStdSelect(new LayUiSelectAttr()
+                                                 {
+                                                     Id = "paymenttype",
+                                                     Val = curDrMainEntity.Get("paymenttype", ""),
+                                                     DataType = "dic",
+                                                     DicCode = "paymenttype",
+                                                     VerifyName = "required"
+                                                 })
+                        }
+                    </div>
+                    <div class="layui-col-md4">
+                        @using (Html.BeginLayuiFormItem("赔偿时间"))
+                        {
+                            @Html.LayUiStdInput(new LayUiInputAttr()
+                       {
+                           PlaceHolder = "yyyy-MM-dd",
+                           Id = "compensatedate",
+                           Val = curDrMainEntity.Get<DateTime>("compensatedate", DateTime.Now).ToString("yyyy-MM-dd"),
+                           VerifyName = "required|date",
+                           IsReadOnly = true
+                       })
+                        }
+                    </div>
+                </div>
+
+                <div class="layui-row layui-col-space30">
+                    <div class="layui-col-md4">
+                        @using (Html.BeginLayuiFormItem("是否支付"))
+                        {
+                            @Html.LayUiStdSelect(new LayUiSelectAttr() { VerifyName = "ispayed", Id = "ispayed", Texts = "否|是", Values = "0|1", Val = curDrMainEntity.Get("ispayed", "0") })
+                        }
+                    </div>
+                    <div class="layui-col-md4">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">赔偿备注</label>
+                            <div class="layui-input-block">
+                                @Html.LayUiStdInput(new LayUiInputAttr()
+                           {
+                               PlaceHolder = "",
+                               Id = "remark",
+                               Val = curDrMainEntity.Get("remark", ""),
+                               IsReadOnly = true
+                           })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--多从表-->
+            <div class="layui-tab">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">赔偿物料清单</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+
+                        <table class="layui-table" id="detailInfo">
+                            <colgroup>
+                                <col width="100">
+                                <col>
+                                <col>
+                                <col width="60">
+                                <col width="100">
+                                <col width="100">
+                                <col width="150">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>货号</th>
+                                    <th>名称</th>
+                                    <th>规格</th>
+                                    <th>单位</th>
+                                    <th>赔偿单价</th>
+                                    <th>赔偿数量</th>
+                                    <th>小计金额</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Hidden("compensatecode", curDrMainEntity.Get("compensatecode", ""))
+    @Html.ExHidden("detailListCount", "0")
+
+
+
+}
+
+@section FormButton
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭" })
+}
+
+@section MainBottom
+{
+
+    <script>
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                adfCommon = layui.adfCommon,
+                form = layui.form;
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            //修改初始化数据
+            if ("@curDoCmd" == "modify" || "@curDoCmd" == "view") {
+                var keycode = $("#compensatecode").val();
+                fillReturnDetail(keycode);
+            }
+
+            function fillReturnDetail(keycode) {
+                var socode = $("#socode").val();
+                var paramData = { socode: socode, keycode: keycode }
+                var loadIndex = layer.load(2);
+                $.getJSON("/renterp/compensate/GetDetailsWithKeyCode", paramData, function (retData) {
+                    layer.close(loadIndex);
+                    console.log(retData);
+                    if (retData.length > 0) {
+                        var rowStr = "";
+                        for (var i = 0; i < retData.length; i++) {
+                            var sku = retData[i];
+                            rowStr += GetRowHtml(sku);
+                        }
+                        $("#detailInfo > tbody").append(rowStr);
+                    }
+
+                    //提交前重新刷新
+                    form.render();
+                });
+            }
+
+
+
+        });
+
+
+        function GetRowHtml(sku) {
+            var rowHtml = "<tr>";
+            rowHtml += "<td>" + sku.artno + "</td>";
+            rowHtml += "<td>" + sku.productname + "</td>";
+            rowHtml += "<td>" + sku.skuspec + "</td>";
+            rowHtml += "<td>" + sku.unit + "</td>";
+            rowHtml += "<td>" + sku.pcdj + "</td>";
+            rowHtml += "<td>" + sku.pcsl + "</td>";
+            rowHtml += "<td>" + sku.pcje + "</td>";
+            rowHtml += "</tr>";
+            return rowHtml;
+        }
+
+    </script>
+}

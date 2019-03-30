@@ -1,0 +1,319 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/renterp/sodetail";
+
+    int sotype = RequestHelper.GetQueryString("sotype", 0);
+    //自定义参数
+    
+}
+
+@section MainHeader
+{
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">会员名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr(){Id = "membername"})
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">产品名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr(){Id = "productname"})
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    
+}
+
+@section MainTableRowTool
+{
+    
+}
+
+@section MainBottom
+{
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.sono = $("#sono").val();
+                sWhere.membername = $("#membername").val();
+                sWhere.productname = $("#productname").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+          
+          
+            /*表格信息*/
+            //列
+
+            var tpl_spec = function (d) {
+                var str = d.skuspec.replace("null", "").replace("null", "").replace("null", "");
+                //str = "<div style='width:120px;word-break:break-all;'>" + str + "</div>";
+                return str;
+            }
+
+            var colfmt_fromdate = function (d) {
+                var str = "";
+                try {
+                    var d2 = new Date(d.fromdate);
+                    str = d2.Format("yyyy-MM-dd");
+                } catch (e) {
+                    str = "";
+                }
+                return str;
+            }
+            var colfmt_enddate = function (d) {
+                var str = "";
+                try {
+                    var d2 = new Date(d.enddate);
+                    str = d2.Format("yyyy-MM-dd");
+                } catch (e) {
+                    str = "";
+                }
+                return str;
+            }
+            var colfmt_qty = function (d) {
+                var str = "<span style='color:red;'>" + d.qty + "</span>";
+                return str;
+            }
+            var colfmt_yhsl = function (d) {
+                var str = "<span style='color:blue;'>" + d.yhsl + "</span>";
+                return str;
+            }
+            var colInfo = [
+                [
+                   { type: 'checkbox', fixed: 'left' }
+                    , { field: 'membername', width: 150,  title: '会员名称' }
+                    , { field: 'cellphone', width: 120, title: '手机' }
+                    , { field: 'sono', width: 180, title: '订单号' }
+                    , { field: 'artno', width: 120, title: '货号' }
+                    , { field: 'productname', width: 150, title: '产品名称' }
+                    , { field: 'skuspec', width: 200, title: '规格', templet: tpl_spec }
+                    , { field: 'fromdate', width: 110, title: '开始时间',templet:colfmt_fromdate }
+                    , { field: 'enddate', width: 110, title: '结束时间', templet: colfmt_enddate }
+                    , { field: 'qty', width: 90, title: '租赁数量',templet:colfmt_qty }
+                    , { field: 'yhsl',width: 90, title: '归还数量',templet:colfmt_yhsl }
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/GetNoReturnProductLisData";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    curRetDoCmd = "";
+                    var socode = rowData.socode;
+                    var sUrl = "@curController/detail?docmd=modify&mccode=@curGlobalModuleCode&socode=" + socode;
+                    adfCommon.dlgOpen("修改信息", sUrl, '100%', '100%', function () {
+                        if (globalData.RetStatus == 101) {
+                            reloadData();
+                        }
+                    });
+
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var socode = rowData.socode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.socode = socode;
+                        param.shopcode = row.shopcode;
+                        
+
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 103) {
+                                //关闭对话框
+                                layer.close(index);
+
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                            }
+                        }, function () { });
+
+                    });
+                } else if (row.event == 'subcomit') {
+                    layer.confirm('确认要提交审批吗?', function (index) {
+                        var socode = rowData.socode;
+                        var sUrl = "@curController/execute?docmd=subcomit";
+                        var param = {};
+                        param.socode = socode;
+
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+
+                            if (retData.RetStatus != 400) {
+                                //关闭对话框
+                                adfCommon.alert("提交成功");
+                                layer.close(index);
+                                reloadData();
+                            } else {
+                                adfCommon.alert("提交失败");
+                            }
+                        }, function () {
+
+                        });
+
+                    });
+                } else if (row.event == 'cancel') {
+                    //---
+                    layer.confirm('确认要进行作废吗?', function (index) {
+                        var socode = rowData.socode;
+                        var sUrl = "@curController/execute?docmd=cancel";
+                        var param = {};
+                        param.socode = socode;
+
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+
+                            if (retData.RetStatus == 100) {
+                                //关闭对话框
+                                adfCommon.alert("作废成功");
+                                layer.close(index);
+                                reloadData();
+                            } else {
+                                adfCommon.alert("作废失败");
+                            }
+                        }, function () {
+
+                        });
+
+                    });
+                    //---
+                }
+                else if (row.event == 'check') {
+                    var socode = rowData.socode;
+                    var sUrl = "@curController/execute?docmd=check";
+                    var param = {};
+                    param.socode = socode;
+                    layer.confirm('确认要审批通过？', {
+                        btn: ['通过', '不通过', '关闭'] //可以无限个按钮
+                        , btn3: function (index, layero) {
+                        layer.close(index);
+                        }
+                    }, function (index, layero) {
+
+                        param.odostatus = 2;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus != 400) {
+                                adfCommon.alert("审批成功");
+                                layer.close(index);
+                                reloadData();
+                            } else {
+                                adfCommon.alert("审批失败");
+                            }
+                        }, function () { });
+                    }, function (index) {
+                        param.odostatus = 0;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus != 400) {
+                                adfCommon.alert("审批成功");
+                                layer.close(index);
+                                reloadData();
+                            } else {
+                                adfCommon.alert("审批失败");
+                            }
+                        }, function () { });
+                    });
+
+
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode&sotype=@sotype";
+                curRetDoCmd = "";;
+                adfCommon.dlgOpen("增加信息", sUrl, '100%', '100%', function () {
+                    if (globalData.RetStatus == 100) {
+                        reloadData();
+                    }
+                });
+            });
+
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+        });
+
+
+        //日期格式扩展
+        Date.prototype.Format = function (fmt) { //author: meizz   
+            var o = {
+                "M+": this.getMonth() + 1,                 //月份   
+                "d+": this.getDate(),                    //日   
+                "h+": this.getHours(),                   //小时   
+                "m+": this.getMinutes(),                 //分   
+                "s+": this.getSeconds(),                 //秒   
+                "q+": Math.floor((this.getMonth() + 3) / 3), //季度   
+                "S": this.getMilliseconds()             //毫秒   
+            };
+            if (/(y+)/.test(fmt))
+                fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (var k in o)
+                if (new RegExp("(" + k + ")").test(fmt))
+                    fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            return fmt;
+        }
+    </script>
+}
+
+
+
+

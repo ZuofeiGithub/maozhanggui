@@ -1,0 +1,238 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/erp/memberinfo";
+
+
+    //自定义参数
+    
+}
+
+@section MainHeader
+{
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">手机号码:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("cellphone", "cellphone")
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">会员名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("nickname", "nickname")
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("刷新", "btnRefresh")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "add", LayerUiHtmlHelper.GetEvent("add"), LayUiButtonColor.Normal)
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "modify", LayerUiHtmlHelper.GetEvent("modify"), LayUiButtonColor.Normal)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "delete", LayerUiHtmlHelper.GetEvent("delete"), LayUiButtonColor.Danger)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "initpwd", LayerUiHtmlHelper.GetEvent("initpwd"), LayUiButtonColor.Normal)
+}
+
+@section MainBottom
+{
+
+
+    <script>
+
+        var curRetDoCmd = "";
+
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                sWhere.cellphone = $("#cellphone").val();
+                sWhere.nickname = $("#nickname").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+            //格式列
+            var colfmt_isenable = function (d) {
+                var str = "";
+                if (d.isenable == "1") {
+                    str = "<span style='color:red;'>禁用</span>";
+                } else {
+                    str = "<span style='color:green;'>启用</span>";
+                }
+                return str;
+            }
+            var colfmt_isplat = function (d) {
+                var str = "";
+                if (d.isplat == "1") {
+                    str = "<span style='color:green;'>是</span>";
+                } else {
+                    str = "<span style='color:red;'>否</span>";
+                }
+                return str;
+            }
+            var colfmt_score = function (d) {
+                var str = "";
+                if ($.trim(d.score) == "") {
+                    str = "0";
+                } else {
+                    str = d.score;
+                }
+                return str;
+            }
+
+            /*表格信息*/
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' },
+                    { field: 'membercode', width: 120, sort: true, title: '会员编码' },
+                    { field: 'membername', width: 200, title: '会员名称' },
+                    { field: 'score', width: 90, title: '剩余积分', templet: colfmt_score },
+                    { field: 'nickname', title: '会员昵称' },
+                    { field: 'cellphone', width: 120, title: '手机号码' },
+                    { field: 'isenable', width: 90, title: '是否禁用', templet: colfmt_isenable },
+                    { field: 'isplat', width: 90, title: '平台会员', templet: colfmt_isplat },
+                    { width: 180, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    var membercode = rowData.membercode;
+                    var sUrl = "@curController/detail?docmd=modify&membercode=" + membercode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("修改信息", sUrl, '100%', '100%', function () {
+                        if (globalData.RetStatus == "101") {
+                            reloadData();
+                        }
+                    });
+
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var membercode = rowData.membercode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.membercode = membercode;
+
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 103) {
+                                //关闭对话框
+                                layer.close(index);
+
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                            }
+                        }, function () { });
+
+                    });
+                }//初始会员密码
+                else if (row.event == 'initpwd') {
+                    layer.confirm('确认要吗?', function (index) {
+                        var membercode = rowData.membercode;
+                        var sUrl = "@curController/execute?docmd=initpwd";
+                        var param = {};
+                        param.membercode = membercode;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 101) {
+                                //关闭对话框
+                                layer.close(index);
+
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                            }
+                        }, function () { });
+
+                    });
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                adfCommon.dlgOpen("增加信息", sUrl, '100%', '100%', function () {
+                    if (globalData.RetStatus == "100") {
+                        reloadData();
+                    }
+                });
+            });
+
+
+           
+
+            //刷新数据
+            $(".btnRefresh").on("click", function () {
+                reloadData();
+            });
+
+            //回车执行查询
+            $("body").on("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    reloadData();
+                }
+            });
+
+        });
+
+    </script>
+}
+
+
+
+

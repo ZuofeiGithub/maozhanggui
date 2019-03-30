@@ -1,0 +1,179 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../admin/master/v2/master.treelist.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数
+    String curController = "/ent/systemconfiguration";
+
+}
+
+@section MainHeader
+{
+
+
+}
+
+@section NavTree
+{
+    <ul id="mainTree" class="ztree" style="margin-top:3px;"></ul>
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">编码:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("diccode", "diccode")
+        </div>
+    </div>
+
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+{
+    Caption = "修改",
+    ClassName = "modify",
+    LayUiButtonSize = LayUiButtonSize.Sm,
+    LayUiButtonTheme = LayUiButtonTheme.Normal,
+    ExtHtmlAttributes = new { lay_event = "modify" }
+})
+}
+
+@section MainBottom
+{
+    <script>
+        var curParentDicCode = '';
+        var curGlobalData = {};
+        var sWhere = {};
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var
+                table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+
+            //重新加载数据
+            function reloadData() {
+                //条件
+                sWhere.ParentCode = curParentDicCode;
+                sWhere.diccode = $("#diccode").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+            //树click事件
+            function treeClick(event, treeId, treeNode) {
+                // 事务处理
+                curParentDicCode = treeNode.diccode;
+                $("#diccode").val("");
+                reloadData();
+            }
+
+            /*加载树*/
+            //加载tree
+            adfCommon.loadZtree("mainTree", "@curController/GetTreeData?mccode=@curGlobalModuleCode&docmd=list", ['diccode'], "dicname", "diccode", "parentcode", treeClick, null);
+
+
+            /*表格信息*/
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' }
+                    , { field: 'diccode', width: 200, title: '编码' }
+                    , { field: 'dicname', width: 200, title: '名称' }
+                    , { field: 'dickey', width: 160, title: '键' }
+                    , { field: 'dicvalue', width: 160, title: '值' }
+                    , { field: 'dicorder', title: '排序值' }
+                    , { width: 180, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    globalData = "";
+                    var diccode = rowData.diccode;
+                    var sUrl = "@curController/detail?docmd=modify&mccode=@curGlobalModuleCode&diccode=" + diccode;
+                    adfCommon.dlgOpen("修改", sUrl, '100%', '100%', function () {
+                        if (globalData == "101") {
+                            reloadData();
+                        }
+                    });
+
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var diccode = rowData.diccode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.diccode = diccode;
+
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.msgDo(retData.RetValue, function () {
+                                if (retData.RetStatus == 103) {
+                                    row.del();
+                                }
+                                //关闭对话框
+                                layer.close(index);
+                            });
+                        }, function () {
+                            adfCommon.alert("网络异常");
+                        });
+
+                    });
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                sUrl += "&ParentCode=" + curParentDicCode;
+                adfCommon.dlgOpen("增加", sUrl, '100%', '100%', function () {
+                    if (globalData == 100) {
+                        reloadData();
+                    }
+                });
+            });
+
+
+        });
+
+
+    </script>
+
+}

@@ -1,0 +1,84 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/manage/datadic";
+
+}
+
+@section BaseHeader
+{
+            <link rel="stylesheet" href="/style/v2/layui/css/layui.css" />
+    <link rel="stylesheet" href="/style/v2/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="/style/v2/css/adf-layui.css" media="all"/>
+    <link rel="stylesheet" href="/style/v2/css/adf-common.css" media="all"/>
+
+    <script src="@curGlobalAdminResPath/ueditor/ueditor.config.js"></script>
+
+    <script src="@curGlobalAdminResPath/ueditor/ueditor.all.min.js"></script>
+
+}
+
+@section BaseBody
+{
+    <div class="layui-form">
+
+        @Html.LayUiStdUEditor(new LayUiStdUEditorAttr() {Id = "x", Val = "aa"})
+
+        <br/>
+
+        <div class="layui-form-item">
+            @Html.LayUiStdCheckGroup(new LayUiCheckBoxGroupAttr() {Name = "aa[]", Texts = "选项1|选项2|选项3", Values = "a|b|c",Vals = "a"})
+        </div>
+        <div class="layui-form-item">
+            @Html.LayUiStdCheckGroup(new LayUiCheckBoxGroupAttr() {Name = "xx", Texts = "选项1|选项2|选项3", Values = "a|b|c",Vals = "a|b"})
+        </div>
+        <div class="layui-form-item">
+            @Html.LayUiStdCheckGroup(new LayUiCheckBoxGroupAttr() {Name = "xx", Texts = "选项1|选项2|选项3", Values = "a|b|c", Vals = "a|b|c"})
+        </div>
+
+        <div class="layui-form-item">
+            
+        </div>
+
+
+    </div>
+
+}
+
+@section BaseBottom
+{
+
+       <script>
+           layui.config({
+               base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+           }).use(['table', 'layer', 'element', 'form', 'adfCommon'], function () {
+            var
+                table = layui.table,
+                layer = layui.layer,
+                form = layui.form,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+
+        });
+
+
+    </script>
+
+}

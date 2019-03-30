@@ -1,0 +1,164 @@
+﻿@using System.Text
+@using System.Web.UI.HtmlControls
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.dlgsingle.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/erp/product";
+    MDataRow curDrMainEntity = ViewBag.MainEntity ?? new MDataRow();
+
+    String curSpecAllInfo = ViewBag.SpecAllInfo ?? "";
+    
+}
+
+@section FormBody
+{
+    @Html.Raw(curSpecAllInfo)
+
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'element', 'adfCommon'], function() {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function(obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function(retData) {
+                    adfCommon.msgDo(retData.RetValue, function() {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function() {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function() {
+                adfCommon.dlgClose();
+            });
+
+            $("#producttypecode").change(function() {
+                //alert("xx");
+                var sUrl = "";
+            });
+
+            //初始化选中的信息
+            intSelectInfo();
+
+            function intSelectInfo() {
+                var d = parent.globalData;
+                //console.log(d);
+                var attrs = { "checked": "checked", "disabled": "disabled" };
+                for (var i = 0; i < d.length; i++) {
+                    $("#" + d[i].attrcode).prop(attrs);
+                    var datacodes = d[i].datacodes.split('|');
+                    for (var j = 0; j < datacodes.length; j++) {
+                        var item = datacodes[j].split('$');
+                        $("#" + item[1]).prop(attrs);
+                        $("#name" + item[1]).val(item[2]).prop(attrs);
+                    }
+                }
+            }
+
+            //大规格中只要有一项选中，其他不可再选择
+            initSpecInfo();
+
+            function initSpecInfo() {
+                var flag = false;
+                var items = $("input#color,input#size,input#spec");
+                items.each(function() {
+                    if($(this).is(":checked")){flag = true;return false;}
+                });
+                if (flag == true) {
+                    items.prop({ "disabled": "disabled" });
+                }
+            }
+
+
+//确认选择
+            $(".btnSelect").click(function() {
+
+                var selectData = [];
+                var curAttrLen = $(".attr:checked");
+                if (curAttrLen == 0) {
+                    adfCommon.alert("请选择一个属性");
+                    return;
+                }
+
+                $(".attr:checked").each(function() {
+
+                    var item = {};
+                    var attrcode = $(this).attr("id");
+                    var attrname = $(this).attr("data");
+                    item.attrcode = attrcode;
+                    item.attrname = attrname;
+
+                    var datacodes = "";
+                    var datanames = "";
+                    //得到属性data
+                    var curDetailLength = $(this).parent().parent().find("input[class='attrdetail']:checked").length;
+                    if (curDetailLength == 0) {
+                        adfCommon.alert("请选择一个属性值");
+                        return;
+                    }
+                    $(this).parent().parent().find("input[class='attrdetail']:checked").each(function() {
+                        datacodes += $(this).attr("data") + "$" + $("#name" + $(this).attr("id")).val() + "|";
+                        datanames += $("#name" + $(this).attr("id")).val() + "|";
+                    });
+                    //alert(datacodes);
+
+                    if (datacodes.length > 0) {
+                        datacodes = datacodes.substring(0, datacodes.length - 1);
+                        datanames = datanames.substring(0, datanames.length - 1);
+                    }
+                    item.datacodes = datacodes;
+                    item.datanames = datanames;
+
+                    selectData.push(item);
+
+                });
+
+                console.log(selectData);
+                parent.globalData = selectData;
+
+                adfCommon.dlgClose();
+
+            });
+        });
+    </script>
+}
+
+@section MainTool
+{
+    @Html.LayUiButton("确认选择","btnSelect")
+}

@@ -1,0 +1,256 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    
+    /*系统参数*/
+    Layout = "../../../master/v2/master.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/erp/sku";
+
+
+    string producttype = Request.QueryString["producttype"] ?? "";
+}
+@section BaseHeader{
+
+    <link rel="stylesheet" href="@curGlobalAdminResPath/layui/css/layui.css"/>
+    <link rel="stylesheet" href="@curGlobalAdminResPath/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="@curGlobalAdminResPath/css/adf-layui.css" media="all"/>
+    <link rel="stylesheet" href="@curGlobalAdminResPath/css/adf-common.css" media="all"/>
+    <script>
+        var cfg_DataUrl = "";
+        var cfg_PageSize = 20;
+        var cfg_ColumnInfo = [];
+        var cfg_Where = {};
+        //一条或多条控制
+        var cfg_isMultiy = 0;
+    </script>
+    <script type="text/html" id="tableRowTool">
+        <a class="layui-btn layui-btn-normal layui-btn-xs selRow" lay-event="btnSelectSku" data-artno="{{d.artno}}">选择</a>
+    </script>
+
+    <script>
+        //列Column信息
+
+        var colfmt_spec = function (d) {
+            var str = "";
+            if (d.color == null) {
+                d.color = "";
+            }
+            if (d.size == null) {
+                d.size = "";
+            }
+            if (d.spec == null) {
+                d.spec = "";
+            }
+            str = d.color + " " + d.size + " " + d.spec;
+            return str;
+        }
+
+        var colfmt_stocknum = function (d) {
+            var str = "";
+            str = d.stocknum + " " + d.unit;
+            return str;
+        }
+
+        var colfmt_packing = function (d) {
+            var str = "";
+            var num = $.isNumeric(d.packingnum) ? Number(d.packingnum) : 0;
+            if (num === 0) {
+                return "-";
+            }
+            str = num + " " + d.packingunit;
+            return str;
+        }
+        var colfmt_packcount = function (d) {
+            var str = "";
+            var count = $.isNumeric(d.packingcount) ? Number(d.packingcount) : 0;
+            if (count === 0) {
+                return "-";
+            }
+            str = count + d.unit + " / " + d.packingunit;
+            return str;
+        }
+        //格式可用数量，小于安全足红色
+        var colfmt_kysl = function (d) {
+            var str = "";
+            var kysl = $.isNumeric(d.kysl) ? Number(d.kysl) : 0;
+            var aqsl = $.isNumeric(d.safestocknum) ? Number(d.safestocknum) : 0;
+            var val = kysl + " " + d.unit;
+            if (kysl <= aqsl) {
+                str = "<span style='color:#f00;'>" + val + "</span>";
+            } else {
+                str = "<span style='color:#000;'>" + val + "</span>";
+            }
+            return str;
+        }
+
+        cfg_ColumnInfo = [
+            [
+                //{ type: 'checkbox', fixed: 'left' }
+                {
+                    width: 65,
+                    title: '选择',
+                    fixed: 'left',
+                    toolbar: '#tableRowTool'
+                },
+                { field: 'artno', width: 120, title: '产品货号' },
+                { field: 'productname', title: '产品名称' },
+                { field: 'spec', width: 300, title: '产品规格', templet: colfmt_spec },
+                { field: 'saleprice', width: 90, title: '产品单价' },
+                { field: 'safestocknum', width: 100, title: '安全库存数' }
+            ]
+        ];
+
+        //数据Url
+        cfg_DataUrl = "@curController/getlistdata";
+
+        //选择多列
+        cfg_isMultiy = 1;
+
+    </script>
+}
+
+
+
+@section BaseBody
+{
+    <div class="layui-fluid">
+        <div class="layui-card" style="margin-bottom: 0;">
+            <div class="layui-card-header adf-card-header">
+                <div class="layui-inline">
+                    <label class="layui-form-label">货号:</label>
+                    <div class="layui-inline">
+                        @Html.LayUiInput("artno", "artno")
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">产品:</label>
+                    <div class="layui-inline">
+                        @Html.LayUiInput("productname", "productname")
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    @Html.LayUiSamllButton("搜索", "btnSearch")
+                </div>
+                <div class="layui-inline layui-hide">
+                    @Html.LayUiSamllButton("确认选择", "btnSelect")
+                </div>
+            </div>
+            <!--表格部分-->
+            <div class="layui-card-body" style="padding: 24px;">
+                <table class="layui-hide" id="MainGrid" lay-filter="curMainGrid"></table>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section BaseBottom{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+
+            /*表格信息*/
+            table.render({
+                elem: '#MainGrid' //渲染DOM
+               , remoteSort: true
+			        , url: cfg_DataUrl //数据接口
+			        , height: 'full-137'
+			        , where: cfg_Where
+                    , cellMinWidth: 100 //全局定义常规单元格的最小宽度
+			        , cols: cfg_ColumnInfo
+                    , limit: cfg_PageSize //每页数目限制
+			        , page: { theme: '#1E9FFF' } //开启分页，并设定颜色
+			        , request: {
+			            pageName: "p"
+                        , limitName: "ps"
+			        }
+                , done: function (res, curr, count) {
+                     initSelectedItems(); //表格数据渲染完成初始化
+                }
+            });
+            table.on('tool(curMainGrid)', function (row) {
+                var rowData = row.data;
+                if (row.event == 'btnSelectSku') {
+                    parent.addSelectedProduct(rowData);
+                    initSelectedItems();
+                }
+            });
+
+
+            //标记选中的项
+            function initSelectedItems() {
+                var list = parent.artnoList;
+                var rowsfix = $(".layui-table-fixed-l").find(".layui-table-body > table > tbody > tr");
+                //console.log(rowsfix.length);
+                rowsfix.each(function (i) {
+                    var selrow = $(this).find(".selRow");
+                    var artno = selrow.attr("data-artno");
+                    var index = $.inArray(artno, list);
+                    //console.log(artno);
+                    //console.log(selrow);
+                    if (index === -1) {
+                        selrow.removeClass("layui-btn-danger");
+                        selrow.addClass("layui-btn-normal");
+                    } else {
+                        selrow.removeClass("layui-btn-normal");
+                        selrow.addClass("layui-btn-danger");
+                    }
+                });
+            }
+
+            /*事件*/
+            $(".btnSearch").click(function () {
+                //Where构造
+                cfg_Where.artno = $("#artno").val();
+                cfg_Where.productname = $("#productname").val();
+                //重新加载
+                adfCommon.reloadStdTable(table, cfg_Where);
+            });
+
+            //选择
+            $(".btnSelect").click(function () {
+                var obj = adfCommon.getStdTableSelectedRows(table);
+                if (obj.data.length == 0) {
+                    adfCommon.alert("请选择一条记录");
+                } else {
+                    if (cfg_isMultiy == 0) {
+                        if (obj.data.length > 1) {
+                            adfCommon.alert("只能选择一条记录");
+                            return;
+                        }
+                        parent.globalData = obj.data[0];
+                    } else {
+                        parent.globalData = obj.data;
+                    }
+
+                }
+
+                adfCommon.dlgClose();
+            });
+
+
+
+        });
+
+    </script>
+
+}

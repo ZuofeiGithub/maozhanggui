@@ -1,0 +1,171 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.treelist.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/manage/org";
+
+}
+
+@section MainHeader
+{
+
+   
+}
+
+@section NavTree
+{
+    <ul id="mainTree" class="ztree" style="margin-top:3px;"></ul>
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">机构编码:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("orgcode","orgcode")
+         </div>
+    </div>
+
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索","btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiSamllButton("增 加","add")
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "modify", LayerUiHtmlHelper.GetEvent("modify"), LayUiButtonColor.Normal)
+    @Html.LayUiSetPermissionButton(curGlobalUserPermission, "delete", LayerUiHtmlHelper.GetEvent("delete"), LayUiButtonColor.Danger)
+}
+
+@section MainBottom
+{
+    <script>
+        var curParentOrgCode = '';
+        var curGlobalData = {};
+        var sWhere = {};
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var 
+                table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+
+            //重新加载数据
+            function reloadData() {
+                //条件
+                sWhere.ParentCode = curParentOrgCode;
+                sWhere.OrgCode = $("#orgcode").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+            //树click事件
+            function treeClick(event, treeId, treeNode) {
+                // 事务处理
+                curParentOrgCode = treeNode.orgcode;
+                $("#orgcode").val("");
+                reloadData();
+            }
+
+            /*加载树*/
+            //加载tree
+            adfCommon.loadZtree("mainTree", "@curController/GetTreeData?mccode=@curGlobalModuleCode&docmd=list", ['orgcode'], "orgname", "orgcode", "parentcode", treeClick, null);
+
+
+            /*表格信息*/
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' }, { field: 'orgcode', width: 120, sort: true, title: '机构编码' }, { field: 'orgname', width: 120, title: '机构名称' }, { field: 'orgorder', title: '排序值' }, { width: 180, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function(row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    globalData = "";
+                    var orgcode = rowData.orgcode;
+                    var sUrl = "@curController/detail?docmd=modify&mccode=@curGlobalModuleCode&orgcode=" + orgcode;
+                    adfCommon.dlgOpen("修改机构", sUrl, '100%', '100%', function() {
+                        if (globalData == "101") {
+                            reloadData();
+                        }
+                    });
+
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function(index) {
+                        var orgcode = rowData.orgcode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.orgcode = orgcode;
+
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.msgDo(retData.RetValue, function() {
+                                if (retData.RetStatus == 103) {
+                                    row.del();
+                                }
+                                //关闭对话框
+                                layer.close(index);
+                            });
+                        }, function() {
+                            adfCommon.alert("网络异常");
+                        });
+
+                    });
+                }
+            });
+
+            /*事件*/
+            $(".btnSearch").click(function() {
+                reloadData();
+            });
+
+            //增加
+            $(".add").click(function() {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                sUrl += "&ParentCode=" + curParentOrgCode;
+                adfCommon.dlgOpen("增加机构", sUrl, '100%', '100%', function () {
+                    if (globalData == 100) {
+                        reloadData();
+                    }
+                });
+            });
+
+
+        });
+
+        
+    </script>
+
+}

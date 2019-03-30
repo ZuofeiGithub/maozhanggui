@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{62A024C1-E875-4A85-BC2C-DD8FDAC9DE78}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Decoration.Implement</RootNamespace>
+    <AssemblyName>Decoration.Implement</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Adf.Core">
+      <HintPath>C:\V5GACV2\Adf.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="CYQ.Data">
+      <HintPath>C:\V5GACV2\CYQ.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MySql\ActivityImpl.cs" />
+    <Compile Include="MySql\ApplyDelayImpl.cs" />
+    <Compile Include="MySql\CaseImpl.cs" />
+    <Compile Include="MySql\CaseRoleImpl.cs" />
+    <Compile Include="MySql\CompanyPayImpl.cs" />
+    <Compile Include="MySql\CompanyTaskcateImpl.cs" />
+    <Compile Include="MySql\DecorationSysRoleImpl.cs" />
+    <Compile Include="MySql\DecorationSysTaskCateImpl.cs" />
+    <Compile Include="MySql\DecorationSysTaskImpl.cs" />
+    <Compile Include="MySql\DecorationSysTemplateImpl.cs" />
+    <Compile Include="MySql\DecortTionPenalizeImpl.cs" />
+    <Compile Include="MySql\DocImpl.cs" />
+    <Compile Include="MySql\ExecuteImpl.cs" />
+    <Compile Include="MySql\FrontModuleImpl.cs" />
+    <Compile Include="MySql\MateriaAlapplayImpl.cs" />
+    <Compile Include="MySql\SystemConfigurationImpl.cs" />
+    <Compile Include="MySql\TaskMessageImpl.cs" />
+    <Compile Include="MySql\PotentialImpl.cs" />
+    <Compile Include="MySql\ProductCollectionImpl.cs" />
+    <Compile Include="MySql\ProjectTeamImpl.cs" />
+    <Compile Include="MySql\ShopCartImpl.cs" />
+    <Compile Include="MySql\SignInImpl.cs" />
+    <Compile Include="MySql\CompanyTaskImpl.cs" />
+    <Compile Include="MySql\CompanyRolelmpl.cs" />
+    <Compile Include="MySql\AdminCompanyUserlmpl.cs" />
+    <Compile Include="MySql\AppFactoryImpl.cs" />
+    <Compile Include="MySql\BannerImpl.cs" />
+    <Compile Include="MySql\CompanyUserlmpl.cs" />
+    <Compile Include="MySql\ModuleImpl.cs" />
+    <Compile Include="MySql\CompanyImpl.cs" />
+    <Compile Include="MySql\ProductCateImpl.cs" />
+    <Compile Include="MySql\ProductImpl.cs" />
+    <Compile Include="MySql\ProjectImpl.cs" />
+    <Compile Include="MySql\TaskCateImpl.cs" />
+    <Compile Include="MySql\SysMsgImpl.cs" />
+    <Compile Include="MySql\TaskImpl.cs" />
+    <Compile Include="MySql\TaskRoleImpl.cs" />
+    <Compile Include="MySql\TaskTemplateImpl.cs" />
+    <Compile Include="MySql\TipImpl.cs" />
+    <Compile Include="MySql\VerificationHelper.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Decoration.Interface\Decoration.Interface.csproj">
+      <Project>{ab792020-5a73-490d-a045-8761826c0be6}</Project>
+      <Name>Decoration.Interface</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

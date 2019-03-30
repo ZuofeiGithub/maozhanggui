@@ -1,0 +1,196 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.Core.Util
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.single.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = "myinfo";
+    String curController = "/manage/user";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+    
+}
+
+@section MainHeader
+{
+
+}
+
+@section MainTitle{
+    我的信息
+}
+
+@section FormBody
+{
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户编码</label>
+                <div class="layui-input-block">
+                    @Html.LayUiLabel(curDrMainEntity.Get("usercode", ""))
+                    @Html.ExHidden("usercode", curDrMainEntity.Get("usercode", ""))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名称</label>
+                <div class="layui-input-block">
+                    @Html.LayUiLabel(curDrMainEntity.Get("username", ""))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">电话</label>
+                <div class="layui-input-block">
+                    @Html.LayUiInput("telphone", "telphone", curDrMainEntity.Get("telphone", ""))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">手机</label>
+                <div class="layui-input-block">
+                    @Html.LayUiInput("cellphone", "cellphone", curDrMainEntity.Get("cellphone", ""))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">身份证</label>
+                <div class="layui-input-block">
+                    @Html.LayUiInput("idcard", "idcard", curDrMainEntity.Get("idcard", ""))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">Email</label>
+                <div class="layui-input-block">
+                    @Html.LayUiInput("email", "email", curDrMainEntity.Get("email", ""))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属机构</label>
+                <div class="layui-input-block">
+                    <div class="layui-col-md10">
+                        @Html.LayUiLabel(curDrMainEntity.Get("orgname", ""))
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+    </div>
+
+        <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    @Html.LayUiInput("userremark", "userremark", curDrMainEntity.Get("userremark", ""))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属角色</label>
+                <div class="layui-input-block">
+                    @{
+                        String curRoles = ViewBag.roleNameStrs ?? "";
+                    }
+
+                    @Html.LayUiLabel(curRoles)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiSubmitButton("保 存")
+
+}
+
+
+
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+                
+
+            //自定义验证
+            form.verify({
+                
+
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            location.href = "/manage/user/myinfo";
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+        });
+    </script>
+}
+
+

@@ -1,0 +1,163 @@
+﻿@using Adf.Core.Util
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@using Decoration.Service
+@{
+    //2018.10.18 王浩  企业列表
+
+    /*系统参数*/
+    Layout = "../master/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*当前业务*/
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/ent/DecorationPay";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+}
+
+@section FormButton
+{
+    @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save", "btnSubmit", LayUiButtonTheme.Danger)
+    <button class="save layui-btn-warm layui-btn" lay-filter="btnSubmit" lay-submit="">保存</button>
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Id = "btnClose", Caption = "关闭", LayUiButtonTheme = LayUiButtonTheme.Normal })
+}
+
+@section FormBody
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.Row}))
+    {
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md12"}))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "支付人"})
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() {Id = "username", Val = curDrMainEntity.Get("username", ""), VerifyName = "required", IsReadOnly=true})
+                 
+                }
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline}))
+                {
+                    @Html.Hidden("payusercode",curDrMainEntity.Get("payusercode",""))
+
+                    @Html.LayUiStdButton(new LayUiButtonAttr() { Id="adduser",Caption="选择支付人"})
+                 
+                }
+             
+            }
+        }
+
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md12"}))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "支付金额" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() {Id = "paymoney", Val = curDrMainEntity.Get("paymoney", ""), PlaceHolder = "请输入支付金额" })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md12"}))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "支付日期" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputInline }))
+                {
+                    @Html.LayUiStdInput(new LayUiInputAttr() {Id = "paydate", Val = curDrMainEntity.Get("paydate", ""), PlaceHolder = "请输入支付日期" })
+                }
+            }
+        }
+
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() {ClassName = "layui-col-xs12 layui-col-md12"}))
+        {
+            using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.FormItem}))
+            {
+                @Html.LayUiStdLabel(new LayUiLabelAttr() {Caption = "支付备注" })
+                using (Html.LayUiStdContainer(new LayUiContainerAttr() {LayUiContainerType = LayUiContainerType.InputBlock}))
+                {
+                    @Html.LayUiStdTextArea(new LayUiTextAreaAttr() { Id = "payremark", Name = "payremark", Val = curDrMainEntity.Get("payremark", ""), PlaceHolder = "" })
+                }
+            }
+        }
+
+    }
+    @Html.Hidden("paycode", curDrMainEntity.Get("paycode", ""))
+    @Html.Hidden("createusercode", curDrMainEntity.Get("createusercode", ""))
+@Html.Hidden("createdatetime", curDrMainEntity.Get("createdatetime", ""))
+    @Html.Hidden("companycode", curDrMainEntity.Get("companycode", ""))
+    
+}
+
+@section MainBottom
+{
+    <script>
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon','upload'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                upload = layui.upload,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+
+            });
+
+
+            //时间框控件
+            layui.use('laydate', function () {
+                var laydate = layui.laydate;
+                //常规用法
+                laydate.render({
+                    elem: "#paydate"
+                });
+            });
+            //保存
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.curRetDoCmd = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#adduser").click(function() {
+                var sUrl =
+                    "/ent/companyuser/SelectCompanyUser?type=0";
+                adfCommon.dlgOpen("选择项目成员",
+                    sUrl,
+                    '100%',
+                    '100%',
+                    function() {
+                        console.log(globalData);
+                      
+                            $("#username").val(globalData.username);
+                            $("#payusercode").val(globalData.usercode);
+                    });
+            })
+          
+            //关闭
+            $("#btnClose").click(function() {adfCommon.dlgClose();});
+        });
+    </script>
+
+}

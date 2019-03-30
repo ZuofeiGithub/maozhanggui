@@ -1,0 +1,254 @@
+﻿@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    /******************************************************************************************
+     * 功能：项目列表
+     * 2018-10-18  创建人 顾健
+     *******************************************************************************************/
+
+    /*系统参数*/
+    Layout = "../master/master.list.cshtml";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    MDataTable curStatus = FrameWorkService.Instance().DataDic().GetAll("projectstatus");
+    //页面参数
+    String curController = "/ent/project";
+}
+
+@section MainHeader{
+    <style>
+        .layui-card-header .layui-input {
+            padding-right: 10px;
+        }
+    </style>
+}
+<!--查询条件-->
+@section MainQuery
+{
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InLine }))
+    {
+
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "项目名称" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InLine }))
+        {
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "projectname", Name = "projectname" })
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InLine }))
+    {
+        @Html.LayUiStdLabel(new LayUiLabelAttr() { Caption = "项目状态" })
+        using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InLine, Ext = "style='width:100px;'" }))
+        {
+            @Html.LayUiStdSelect(new LayUiSelectAttr() { Id = "projectstatus", DataType = "db", Name = "projectstatus", DtSource = curStatus, ValueFieldName = "dicvalue", TextFieldName = "dickey" })
+        }
+    }
+    @using (Html.LayUiStdContainer(new LayUiContainerAttr() { LayUiContainerType = LayUiContainerType.InputInline }))
+    {
+        @Html.LayUiSamllButton("搜索", "btnSearch")
+        @Html.LayUiSamllButton("刷新", "btnRefresh")
+    }
+
+}
+
+<!--增加按钮-->
+@section MainTool
+{
+    @Html.LayUiButton("增加", "add")
+}
+
+<!--列表操作按钮-->
+@section MainBottom
+{
+    <script type="text/html" id="barDemo">
+        @Html.LayUiButton("修改", " layui-btn layui-btn-xs layui-btn-normal modify ", "", "lay-event='modify'")
+        @Html.LayUiButton("删除", " layui-btn layui-btn-xs layui-btn-danger delete ", "", "lay-event='delete'")
+        @Html.LayUiButton("查看明细", " layui-btn layui-btn-xs layui-btn-normal view ", "", "lay-event='view'")
+        @*@Html.LayUiButton("同步数据", " layui-btn layui-btn-xs layui-btn-normal synchronization ", "", "lay-event='synchronization'")*@
+    </script>
+
+    <script>
+        var curRetDoCmd = "";
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+            //重新加载数据
+            function reloadData() {
+                //条件
+                var sWhere = {};
+                //单位名称
+                sWhere.projectname = $("#projectname").val();
+                sWhere.projectstatus = $("#projectstatus").val();
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+            var tplWfStatus = function (d) {
+                var str = "";
+                if (d.projectstatus == "0") {
+                    str = "意向";
+                } else if (d.projectstatus == "1") {
+                    str = "进行中";
+                } else if (d.projectstatus == "2") {
+                    str = "延期";
+                } else if (d.projectstatus == "3") {
+                    str = "已完成";
+                }
+                return str;
+            }
+
+            var data = function (d) {
+                var str = "";
+                if (d.startdate != null) {
+                    str = d.startdate.split(" ")[0];
+                }
+                return str;
+            }
+
+            var data1 = function (d) {
+                var str = "";
+                if (d.enddate != null) {
+                    str = d.enddate.split(" ")[0];
+                }
+                return str;
+            }
+
+            var username = function (d) {
+                var str = "";
+                if (d.username != null) {
+                    var t = d.username.split(",");
+                    var user = [];
+                    for (var i = 0; i < t.length; i++) {
+                        if (t[i] != "") {
+                            user.push(t[i]);
+                        }
+                    }
+                    return user.join(",");
+                }
+                return str;
+            }
+
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' },
+                    { field: 'projectname',title: '项目名称' },
+                    { field: 'username', width: 100, title: '业主', templet: username },
+                    { field: 'projectcatename', width: 100, title: '当前阶段' },
+                    { field: 'companyname', title: '公司名称' },
+                    { field: 'projectaddress', title: '地址' },
+                    { field: 'startdate', width: 110, title: '开始时间', templet: data },
+                    { field: 'enddate', width: 110, title: '结束时间', templet: data1 },
+                    { field: 'projectstatus', width: 90, title: '状态', templet: tplWfStatus },
+                    { title: '操作', width: 200, fixed: 'right', toolbar: '#barDemo' } //设置固定
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function (row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    curRetDoCmd = "";
+                    var projectcode = rowData.projectcode;
+                    var sUrl = "@curController/detail?docmd=modify&projectcode=" + projectcode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("修改信息", sUrl, '100%', '100%', function () {
+                        if (curRetDoCmd == "101") {
+                            //刷新页面
+                            reloadData();
+                        }
+                    });
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.projectcode = rowData.projectcode;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 103) {
+                                //关闭对话框
+                                layer.close(index);
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                                //刷新页面
+                                reloadData();
+                            }
+                        }, function () { });
+                    });
+                }
+                else if (row.event == 'view') {
+                    curRetDoCmd = "";
+                    var projectcode = rowData.projectcode;
+                    var sUrl = "@curController/detail?docmd=view&projectcode=" + projectcode + "&mccode=@curGlobalModuleCode";
+                    adfCommon.dlgOpen("查看信息", sUrl, '100%', '100%', function () {
+                        if (curRetDoCmd == "101") {
+                            //刷新页面
+                            reloadData();
+                        }
+                    });
+                }
+                @*else if (row.event = 'synchronization') {
+                    var projectcode = rowData.projectcode;
+
+                    layer.confirm('确认要删除吗?', function (index) {
+                        var sUrl = "@curController/execute?docmd=synchronization";
+                        var param = {};
+                        param.projectcode = rowData.projectcode;
+                        adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                            adfCommon.alert(retData.RetValue);
+                            if (retData.RetStatus == 103) {
+                                //关闭对话框
+                                layer.close(index);
+                                //数据库删除成功后,在界面上进行删除.
+                                row.del();
+                                //刷新页面
+                                reloadData();
+                            }
+                        }, function () { });
+                    });
+                }*@
+            });
+
+            /*返回事件*/
+            $(".btnSearch").click(function () {
+                reloadData();
+            });
+
+            /*增加*/
+            $(".add").click(function () {
+                var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                curRetDoCmd = "";;
+                adfCommon.dlgOpen("增加信息", sUrl, '100%', '100%', function () {
+                    if (curRetDoCmd == "100") {
+                        reloadData();
+                    }
+                });
+            });
+
+            /*刷新数据*/
+            $(".btnRefresh").on("click", function () {
+                reloadData();
+            });
+
+        });
+    </script>
+}
+
+
+
+
+

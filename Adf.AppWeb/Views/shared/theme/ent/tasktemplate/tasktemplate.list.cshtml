@@ -1,0 +1,225 @@
+﻿@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@using Adf.FrameWork.Service.LayUi
+@{
+    //2018.10.19 王浩    任务角色
+    //
+
+    /*系统参数*/
+    Layout = "../master/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*页面参数*/
+    String curController = "/ent/tasktemplate";
+}
+@section MainHeader{
+    <style>
+        .layui-card-header .layui-input {
+            padding-right: 10px;
+        }
+    </style>
+}
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">模板名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "tasktemplatetitle" })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+}
+
+
+@section MainTool
+{
+}
+
+@section MainTableRowTool
+{
+    
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+    {
+        Caption = "复制新增",
+        ClassName = "copy",
+        LayUiButtonSize = LayUiButtonSize.Xs,
+        LayUiButtonTheme = LayUiButtonTheme.Normal,
+        ExtHtmlAttributes = new { lay_event = "copy" }
+    })
+
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Caption = "修改",
+                             ClassName = "modify",
+                             LayUiButtonSize = LayUiButtonSize.Xs,
+                             LayUiButtonTheme = LayUiButtonTheme.Normal,
+                             ExtHtmlAttributes = new { lay_event = "modify" }
+                         })
+
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Caption = "删除",
+                             ClassName = "delete",
+                             LayUiButtonSize = LayUiButtonSize.Xs,
+                             LayUiButtonTheme = LayUiButtonTheme.Danger,
+                             ExtHtmlAttributes = new { lay_event = "delete" }
+                         })
+
+}
+
+@section MainBottom
+{
+    <script>
+        var curRetDoCmd = "";
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'],
+            function() {
+                var table = layui.table,
+                    layer = layui.layer,
+                    element = layui.element,
+                    adfCommon = layui.adfCommon;
+
+                /*函数*/
+                //重新加载数据
+                function reloadData() {
+                    //查询条件
+                    var sWhere = {};
+                    sWhere.tasktemplatetitle = escape($("#tasktemplatetitle").val());
+
+                    //重新加载
+                    adfCommon.reloadStdTable(table, sWhere);
+                }
+
+           
+               
+                /*表格信息*/
+                //列
+                var colInfo = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'templatename', title: '模板名称' },
+                        { field: 'totaldays', width: 100, title: '任务总天数' },
+                        { field: 'templateorder ', width: 100, title: '排序'},
+                        { width: 250, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                    ]
+                ];
+
+
+                //数据（通过控制器找到getlistdata方法 获取数据）
+                var dataUrl = "@curController/GetListData";
+
+                //页面显示20条信息
+                var pageSize = 20;
+
+                //初始查询条件
+                var sWhere = {};
+
+                //初始化
+                adfCommon.setStdTable(table,
+                    colInfo,
+                    dataUrl,
+                    pageSize,
+                    sWhere,
+                    function(row) {
+                        var rowData = row.data;
+                        if (row.event == 'modify') {
+                            curRetDoCmd = "";
+                            var templatecode = rowData.templatecode;
+                            var sUrl = "@curController/detail?docmd=modify&mccode=@curGlobalModuleCode&templatecode=" +
+                                templatecode;
+                            adfCommon.dlgOpen("修改信息",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {
+                                    if (curRetDoCmd == "101") {
+                                        reloadData();
+                                    }
+                                });
+                        }
+                        else if (row.event == 'delete') {
+                            layer.confirm('确认要删除吗?',
+                                function(index) {
+                                    var templatecode = rowData.templatecode;
+                                    var sUrl = "@curController/execute?docmd=delete";
+                                    var param = {};
+                                    param.templatecode = templatecode;
+                                    //post提交
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function(retData) {
+                                            adfCommon.alert(retData.RetValue);
+                                            if (retData.RetStatus == 103) {
+                                                //关闭对话框
+                                                layer.close(index);
+                                                //数据库删除成功后,在界面上进行删除.
+                                                row.del();
+                                            }
+                                        },
+                                        function() {});
+                                });
+                        } else if (row.event == "copy") {
+                            layer.prompt({
+                                    title: '请输入模板名称',
+                                    formType: 3
+                                  
+                                },
+                                function (pass, index) {
+                                    var lasttime = $("#lasttime").val();
+                                    $.post("/ent/TaskTemplate/execute?docmd=copy&templatename=" +
+                                        pass +
+                                        "&lasttime=" + lasttime + "&templatecode=" + rowData.templatecode,
+                                        function (retData) {
+                                            layer.msg(retData.RetValue,
+                                                { offset: '15px', icon: 1, time: 2000 },
+                                                function () {
+                                                    if (retData.RetValue != 400) {
+                                                        layer.closeAll();
+                                                        reloadData();
+                                                    }
+                                                });
+                                        });
+
+
+                                });
+                            $(".layui-layer-content")
+                                .append(
+                                    "<br/><input class='layui-layer-input' style='width:240px' type='text' id='lasttime' placeholder='请输入任务总天数'/>");
+                           
+                        }
+                    });
+                /*事件*/
+                $(".btnSearch").click(function() {
+                    reloadData();
+                });
+
+                //增加
+                $(".add").click(function() {
+                    var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                    curRetDoCmd = "";;
+                    adfCommon.dlgOpen("增加信息",
+                        sUrl,
+                        '100%',
+                        '100%',
+                        function() {
+                            if (curRetDoCmd == "100") {
+                                reloadData();
+                            }
+                        });
+                });
+            });
+    </script>
+}

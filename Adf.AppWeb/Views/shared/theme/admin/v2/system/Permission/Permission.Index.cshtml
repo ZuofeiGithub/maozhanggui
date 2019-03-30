@@ -1,0 +1,240 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.treelist.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/manage/permission";
+    Dictionary<String, String> curDicData = ViewBag.DicData;
+    int curShowAdvancerQuery = 1;
+
+}
+
+@section MainHeader
+{
+
+   
+}
+
+@section NavTree
+{
+    <div class="layui-row">
+        <div class="layui-inline">
+            @Html.ExHidden("rolecode", "")
+            @Html.LayUiInput("rolename", "rolename")
+        </div>
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("角色", "btnSelectRole")
+        </div>
+    </div>
+    <ul id="mainTree" class="ztree" style="margin-top:3px;"></ul>
+}
+
+@section MainQuery
+{
+    权限参数
+}
+
+@section MainTool
+{
+    @Html.LayUiSamllButton("增 加","add")
+}
+
+@section MainTableRowTool
+{
+   
+}
+
+@section MainBottom
+{
+    <script type="text/html" id="hasButtonTool">
+        <input class="setbutton" value="{{d.hasbutton}}" data="{{d.buttoncode}}"/>
+    </script>
+    <script>
+        var curModuleCode = '';
+        var curGlobalData = {};
+        var sWhere = {};
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function() {
+            var
+                table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+
+            //重新加载数据
+            function reloadData() {
+                //条件
+                sWhere.modulecode = curModuleCode;
+                sWhere.rolecode = $("#rolecode").val();
+
+                //重新加载
+                adfCommon.reloadStdTable(table, sWhere);
+            }
+
+//树click事件
+            function treeClick(event, treeId, treeNode) {
+                // 事务处理
+                curModuleCode = treeNode.modulecode;
+                reloadData();
+            }
+
+            /*加载树*/
+            var setting = {
+                check: {
+                    enable: true,
+                    chkStyle: "checkbox",
+                    chkboxType: { "Y": "p", "N": "s" }
+                },
+                callback: {
+                    onClick: treeClick,
+                    onCheck: function(event, treeId, treeNode) {
+                        /*点击改变状态 选中设置表示当前角色拥有当前的权限 取消当前checkbox表示取消了当前权限*/
+                        var sp1 = {};
+                        sp1.rolecode = $("#rolecode").val();
+                        sp1.modulecode = treeNode.modulecode;
+                        var sUrl = "@curController/SetModuleToRole";
+                        adfCommon.ajaxSyncPost(sUrl, sp1, function(retData) {
+                            adfCommon.alert(retData.RetValue);
+                        }, function() {
+                            adfCommon.alert("数据异常");
+                        });
+
+                    }
+                }
+            };
+            //从模块加载tree
+            adfCommon.loadZtree("mainTree", "@curController/GetRoleModuleTreeData?mccode=@curGlobalModuleCode&docmd=list", ['modulecode'], "modulename", "modulecode", "parentcode", treeClick, setting);
+
+
+            /*表格信息*/
+            //列
+            var colInfo = [
+                [
+                    { type: 'checkbox', fixed: 'left' }, { field: 'buttoncode', width: 120, sort: true, title: '按钮编码' }, { field: 'caption', width: 120, title: '按钮名称' }, { title: '值', toolbar: '#hasButtonTool' }
+                ]
+            ];
+            //数据
+            var dataUrl = "@curController/getrolemodulebuttonlistdata";
+            var pageSize = 20;
+
+            //初始查询条件
+            var sWhere = {};
+            //初始化
+            adfCommon.setStdTable(table, colInfo, dataUrl, pageSize, sWhere, function(row) {
+                var rowData = row.data;
+                if (row.event == 'modify') {
+                    globalData = "";
+                    var orgcode = rowData.orgcode;
+                    var sUrl = "@curController/detail?docmd=modify&orgcode=" + orgcode;
+                    adfCommon.dlgOpen("修改机构", sUrl, '100%', '100%', function() {
+                        if (globalData == "101") {
+                            reloadData();
+                        }
+                    });
+
+                } else if (row.event == 'delete') {
+                    layer.confirm('确认要删除吗?', function(index) {
+                        var orgcode = rowData.orgcode;
+                        var sUrl = "@curController/execute?docmd=delete";
+                        var param = {};
+                        param.orgcode = orgcode;
+
+                        adfCommon.ajaxSyncPost(sUrl, param, function(retData) {
+                            adfCommon.msgDo(retData.RetValue, function() {
+                                if (retData.RetStatus == 103) {
+                                    row.del();
+                                }
+                                //关闭对话框
+                                layer.close(index);
+                            });
+                        }, function() {
+                            adfCommon.alert("网络异常");
+                        });
+
+                    });
+                }
+            });
+
+            /*事件*/
+            //搜索
+            $(".btnSearch").click(function() {
+                reloadData();
+            });
+
+            //选择角色
+            $(".btnSelectRole").click(function() {
+
+                adfCommon.dlgSelectOneRole("80%", "90%", function() {
+                    $("#rolecode").val(globalData.rolecode);
+                    $("#rolename").val(globalData.rolename);
+
+                    //重新加载授权文件
+                    var sUrl = "@curController/GetRoleModuleTreeData?mccode=@curGlobalModuleCode&rolecode=" + globalData.rolecode;
+                    adfCommon.loadZtree("mainTree", sUrl, ['modulecode'], "modulename", "modulecode", "parentcode", treeClick, setting);
+
+
+                });
+            });
+
+            //设置角色权限
+
+            $("body").on("change", ".setbutton", function () {
+                var sButtonCode = $(this).attr("data");
+                var param = {};
+                param.rolecode = $("#rolecode").val();
+                param.modulecode = curModuleCode;
+                param.ButtonCode = sButtonCode;
+                param.DoCmd = "permission";
+                var sUrl = "@curController/execute";
+
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.alert(retData.RetValue);
+                }, function () { });
+            });
+
+            //增加
+            $(".add").click(function () {
+                var curRoleCode = $("#rolecode").val();
+                if (curRoleCode == "") {
+                    adfCommon.alert("请选择角色");
+                    return;
+                }
+
+                if (curModuleCode == "") {
+                    adfCommon.alert("请选择模块");
+                    return;
+                }
+
+                var sUrl = "@curController/detail?docmd=add";
+                sUrl += "&rolecode=" + curRoleCode;
+                sUrl += "&modulecode=" + curModuleCode;
+                adfCommon.dlgOpen("增加权限", sUrl, '100%', '100%', function() {
+                    if (globalData.RetStatus == 100) {
+                        reloadData();
+                    }
+                });
+            });
+
+
+        });
+
+
+    </script>
+
+}

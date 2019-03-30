@@ -1,0 +1,170 @@
+﻿@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@using Adf.FrameWork.Service.LayUi
+@{
+    /*
+     * 功能：平台角色列表
+     * 创建人：张硕
+     * 创建时间：2018-11-13
+     * /
+     /*系统参数*/
+    Layout = "~/Views/shared/theme/admin/master/v2/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    /*页面参数*/
+    String curController = "/manage/decorationsysrolemng";
+}
+
+@section MainHeader{
+    <style>
+        .layui-card-header .layui-input {
+            padding-right: 10px;
+        }
+    </style>
+}
+
+@section MainQuery
+{
+    <div class="layui-inline">
+        <label class="layui-form-label">角色名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() { Id = "rolename" })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+}
+
+@section MainTool
+{
+    @Html.LayUiButton("增加", "add")
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr() { Caption = "修改", ClassName = "modify", LayUiButtonSize = LayUiButtonSize.Xs, LayUiButtonTheme = LayUiButtonTheme.Normal, ExtHtmlAttributes = new { lay_event = "modify" } })
+}
+
+@section MainBottom
+{
+    <script>
+        var curRetDoCmd = "";
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'],
+            function() {
+                var table = layui.table,
+                    layer = layui.layer,
+                    element = layui.element,
+                    adfCommon = layui.adfCommon;
+                /*函数*/
+                //重新加载数据
+                function reloadData() {
+                    //查询条件
+                    var sWhere = {};
+                    sWhere.rolename = escape($("#rolename").val());
+
+                    //重新加载
+                    adfCommon.reloadStdTable(table, sWhere);
+                }
+
+                /*表格信息*/
+                //列
+                var colInfo = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'rolename',  title: '角色名称' },
+                        { field: 'roleorder', width: 100, title: '排序' },
+                        { width: 200, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                    ]
+                ];
+
+                //数据（通过控制器找到getlistdata方法 获取数据）
+                var dataUrl = "@curController/GetListData";
+                //页面显示20条信息
+                var pageSize = 20;
+
+                //初始查询条件
+                var sWhere = {};
+
+                //初始化
+                adfCommon.setStdTable(table,
+                    colInfo,
+                    dataUrl,
+                    pageSize,
+                    sWhere,
+                    function(row) {
+                        var rowData = row.data;
+                        if (row.event == 'modify') {
+                            curRetDoCmd = "";
+                            var rolecode = rowData.rolecode;
+                            var sUrl = "@curController/detail?docmd=modify&mccode=@curGlobalModuleCode&rolecode=" +
+                                rolecode;
+                            adfCommon.dlgOpen("修改信息",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {
+                                    if (curRetDoCmd == "101" || curRetDoCmd == "100") {
+                                        reloadData();
+                                    }
+                                });
+                        }
+                        else if (row.event == 'delete') {
+                            layer.confirm('确认要删除吗?',
+                                function(index) {
+                                    var rolecode = rowData.rolecode;
+                                    var sUrl = "@curController/execute?docmd=delete";
+                                    var param = {};
+                                    param.rolecode = rolecode;
+                                    //post提交
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function(retData) {
+                                            adfCommon.alert(retData.RetValue);
+                                            if (retData.RetStatus == 103) {
+                                                //关闭对话框
+                                                layer.close(index);
+                                                //数据库删除成功后,在界面上进行删除.
+                                                row.del();
+                                                reloadData();
+                                            }
+                                        },
+                                        function() {});
+                                });
+                        }
+                    });
+
+                /*事件*/
+                $(".btnSearch").click(function() {
+                    reloadData();
+                });
+
+                //增加
+                $(".add").click(function() {
+                    var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode";
+                    curRetDoCmd = "";;
+                    adfCommon.dlgOpen("增加信息",
+                        sUrl,
+                        '100%',
+                        '100%',
+                        function() {
+                            if (curRetDoCmd == "100") {
+                                reloadData();
+                            }
+                        });
+                });
+            });
+    </script>
+}

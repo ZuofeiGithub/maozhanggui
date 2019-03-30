@@ -1,0 +1,294 @@
+﻿@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@using Adf.FrameWork.Service.LayUi
+@using Decoration.Service
+@{
+    //2018.10.19 王浩    施工任务
+
+    /*系统参数*/
+    Layout = "../master/master.list.cshtml";
+    MDataRow curGlobalApp = ViewBag.GlobalApp ?? new MDataRow();
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+    String curGlobalCompanyCode = ViewBag.GlobalCompanyCode ?? "";
+    /*页面参数*/
+    String curController = "/ent/companytask";
+    MDataTable catecodeTable = ViewBag.catecodeTable ?? new MDataTable();
+
+    String cateCode = "";
+    String catename = "全部分类";
+    if (catecodeTable.Rows.Count > 0)
+    {
+        foreach (var item in catecodeTable.Rows)
+        {
+            cateCode += "|" + item.Get("catecode", "");
+            catename += "|" + item.Get("catename", "");
+        }
+    }
+
+    MDataTable template = DecorationService.Instance().TaskTemplate().GetAll(curGlobalCompanyCode);
+    String templateCateCode = "";
+    String templateCatename = "";
+    if (template.Rows.Count > 0)
+    {
+        foreach (var item in template.Rows)
+        {
+            templateCateCode += item.Get("templatecode", "")+ "|";
+            templateCatename +=  item.Get("templatename", "") + "|";
+        }
+        templateCateCode = templateCateCode.Substring(0, templateCateCode.Length - 1);
+        templateCatename = templateCatename.Substring(0, templateCatename.Length - 1);
+    }
+
+
+}
+@section MainHeader{
+    <style>
+        .layui-card-header .layui-input {
+            padding-right: 10px;
+        }
+    </style>
+   
+}
+@section MainQuery
+{
+    
+    
+    <div class="layui-inline">
+        <label class="layui-form-label">任务名称:</label>
+        <div class="layui-inline">
+            @Html.LayUiInput("taskname", "taskname")
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">	
+            所属模板:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdSelect(new LayUiSelectAttr()
+            {
+                Id = "templatecode",
+                Name = "templatecode",
+                Texts = templateCatename,
+                Values = templateCateCode,
+                Val = ""
+            })
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">任务类型:</label>
+        <div class="layui-inline">
+            @Html.LayUiStdSelect(new LayUiSelectAttr()
+            {
+                Id = "catecode",
+                Name = "catecode",
+                Texts = "",
+                Values = "",
+                Val = ""
+            })
+        </div>
+    </div>
+ 
+    <div class="layui-inline">
+        <div class="layui-inline">
+            @Html.LayUiSamllButton("搜 索", "btnSearch")
+        </div>
+    </div>
+    
+}
+
+@section MainTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Caption = "增加",
+                             ClassName = "add",
+                             LayUiButtonSize = LayUiButtonSize.Xs,
+                             LayUiButtonTheme = LayUiButtonTheme.Normal,
+                             ExtHtmlAttributes = new { lay_event = "add" }
+                         })
+}
+}
+
+@section MainTableRowTool
+{
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Caption = "修改",
+                             ClassName = "modify",
+                             LayUiButtonSize = LayUiButtonSize.Xs,
+                             LayUiButtonTheme = LayUiButtonTheme.Normal,
+                             ExtHtmlAttributes = new { lay_event = "modify" }
+                         })
+
+    @Html.LayUiStdButton(new LayUiButtonAttr()
+                         {
+                             Caption = "删除",
+                             ClassName = "delete",
+                             LayUiButtonSize = LayUiButtonSize.Xs,
+                             LayUiButtonTheme = LayUiButtonTheme.Danger,
+                             ExtHtmlAttributes = new { lay_event = "delete" }
+                         })
+
+}
+@section MainBottom
+{
+    <script>
+        var curRetDoCmd = "";
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'],
+            function() {
+                var table = layui.table,
+                    layer = layui.layer,
+                    element = layui.element,
+                    adfCommon = layui.adfCommon;
+
+                /*函数*/
+                //重新加载数据
+                function reloadData() {
+                    //查询条件
+                    var sWhere = {};
+                    sWhere.taskname = escape($("#taskname").val());
+                    sWhere.catecode = escape($("#catecode").val());
+                    sWhere.templatecode = $("#templatecode").val();
+                    //重新加载
+                    adfCommon.reloadStdTable(table, sWhere);
+                }
+
+                /*表格信息*/
+                //列
+                var colInfo = [
+                    [
+                        { type: 'checkbox', fixed: 'left' },
+                        { field: 'taskname',  title: '任务名称' },
+                        { field: 'catename', width: 150, title: '任务阶段名称' },
+                        { field: 'taskdays', width: 90, title: '任务天数' },
+                        { field: 'taskremark', width: 200, title: '任务内容' },
+                        { width: 120, title: '操作', fixed: 'right', toolbar: '#tableRowTool' } //设置固定
+                    ]
+                ];
+
+
+                //数据（通过控制器找到getlistdata方法 获取数据）
+                var dataUrl = "@curController/GetListData";
+
+                //页面显示20条信息
+                var pageSize = 20;
+
+                //初始查询条件
+                var sWhere = {};
+
+                //初始化
+                adfCommon.setStdTable(table,
+                    colInfo,
+                    dataUrl,
+                    pageSize,
+                    sWhere,
+                    function(row) {
+                        var rowData = row.data;
+                        if (row.event == 'modify') {
+                            curRetDoCmd = "";
+                            var templatecode = $("#templatecode").val();
+                            var taskcode = rowData.taskcode;
+                            var sUrl = "@curController/detail?docmd=modify&mccode=@curGlobalModuleCode&taskcode=" +
+                                taskcode + "&templatecode=" + templatecode;
+                            adfCommon.dlgOpen("修改信息",
+                                sUrl,
+                                '100%',
+                                '100%',
+                                function() {
+                                    if (curRetDoCmd == "101") {
+                                        reloadData();
+                                    }
+                                });
+                        } 
+                        else if (row.event == 'delete') {
+                            layer.confirm('确认要删除吗?',
+                                function(index) {
+                                    var taskcode = rowData.taskcode;
+                                    var sUrl = "@curController/execute?docmd=delete";
+                                    var param = {};
+                                    param.taskcode = taskcode;
+                                    //post提交
+                                    adfCommon.ajaxSyncPost(sUrl,
+                                        param,
+                                        function(retData) {
+                                            adfCommon.alert(retData.RetValue);
+                                            if (retData.RetStatus == 103) {
+                                                //关闭对话框
+                                                layer.close(index);
+                                                //数据库删除成功后,在界面上进行删除.
+                                                row.del();
+                                            }
+                                        },
+                                        function() {});
+                                });
+                        }
+                    });
+
+                /*事件*/
+                $(".btnSearch").click(function() {
+                    reloadData();
+                });
+
+                $("#templatecode").change(function() {
+                    $.post("/ent/companytask/GetTaskCate?templatecode="+$(this).val(),function(data) {
+                        console.log(data);
+                        var html = "";
+                        for (var i = 0; i < data.length; i++) {
+                            html += " <option value=" +
+                                data[i].split('|')[1] +
+                                ">" +
+                                data[i].split('|')[0] +
+                                "</option>";
+                        }
+                        $("#catecode").empty();
+                        $("#catecode").append(html);
+
+                    })
+                })
+
+                //增加
+                $(".add").click(function () {
+                    var templatecode = $("#templatecode").val();
+                    var sUrl = "@curController/detail?docmd=add&mccode=@curGlobalModuleCode&templatecode=" + templatecode;
+                    curRetDoCmd = "";;
+                    adfCommon.dlgOpen("增加信息",
+                        sUrl,
+                        '100%',
+                        '100%',
+                        function() {
+                            if (curRetDoCmd == "100") {
+                                reloadData();
+                            }
+                        });
+                });
+                initSelect();
+            });
+
+        function initSelect() {
+            var templatecode = $("#templatecode").val();
+
+            $.post("/ent/companytask/GetTaskCate?templatecode=" + templatecode,function(data) {
+                console.log(data);
+                var html = "";
+                for (var i = 0; i < data.length; i++) {
+                    html += " <option value=" +
+                        data[i].split('|')[1] +
+                        ">" +
+                        data[i].split('|')[0] +
+                        "</option>";
+                }
+                $("#catecode").empty();
+                $("#catecode").append(html);
+
+            })
+        }
+    </script>
+}

@@ -1,0 +1,127 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using Adf.FrameWork.Service.LayUi
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.detail.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //当前业务
+    String curDoCmd = ViewBag.CurrentCmd;
+    String curController = "/manage/area";
+    MDataRow curDrMainEntity = ViewBag.DrMainEntity ?? new MDataRow();
+    
+}
+
+@section MainHeader
+{
+
+}
+
+@section FormButton{
+     @Html.LayUiStdButtonPerssionSubmit(curGlobalUserPermission, "save")
+
+    @Html.LayUiStdButton(new LayUiButtonAttr(){Id = "btnClose",Caption = "关闭"})
+}
+
+
+@section FormBody
+{
+    <div class="layui-form-item">
+        <label class="layui-form-label">地区编码</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr(){Id = "areacode",Val = curDrMainEntity.Get("areacode", "")})
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">地区名称</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr(){Id = "areaname",Val = curDrMainEntity.Get("areaname", "")})
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序值</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr(){Id = "areaorder",Val = curDrMainEntity.Get("areaorder", "")})
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">简称</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() {Id = "shortname", Val = curDrMainEntity.Get("shortname", "")})
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">英文</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() {Id = "enname", Val = curDrMainEntity.Get("enname", "")})
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">邮政编码</label>
+        <div class="layui-input-inline">
+            @Html.LayUiStdInput(new LayUiInputAttr() {Id = "postcode", Val = curDrMainEntity.Get("postcode", "")})
+        </div>
+    </div>
+
+
+    @Html.ExHidden("parentcode", curDrMainEntity.Get("parentcode", ""))
+}
+
+@section MainBottom
+{
+    <script>
+
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['layer', 'form', 'adfCommon'], function () {
+            var layer = layui.layer,
+                form = layui.form,
+                adfCommon = layui.adfCommon;
+
+            //自定义验证
+            form.verify({
+                //角色编码
+                diccode: function (value, item) {
+                    if (value === "") {
+                        return "字典编码不能为空";
+                    }
+                }
+            });
+
+            //提交表单
+            form.on('submit(btnSubmit)', function (obj) {
+                var sUrl = "@curController/execute?docmd=@curDoCmd";
+                var param = obj.field;
+                adfCommon.ajaxSyncPost(sUrl, param, function (retData) {
+                    adfCommon.msgDo(retData.RetValue, function () {
+                        if (retData.RetStatus == 100 || retData.RetStatus == 101) {
+                            //刷新父级数据
+                            parent.globalData = retData.RetStatus;
+                            //关闭当前窗口
+                            adfCommon.dlgClose();
+                        }
+                    });
+                }, function () {
+                    adfCommon.alert("网络存在异常,请重试");
+                });
+            });
+
+            $("#btnClose").click(function () {
+                adfCommon.dlgClose();
+            });
+
+            
+        });
+    </script>
+}

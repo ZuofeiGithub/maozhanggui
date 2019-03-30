@@ -1,0 +1,76 @@
+﻿@using System.Text
+@using Adf.Core.Form
+@using Adf.FrameWork.Interface.Entity
+@using Adf.FrameWork.Service
+@using Adf.FrameWork.Service.AsForm
+@using Adf.FrameWork.Service.HtmlHelperEx
+@using CYQ.Data.Table
+@{
+    //系统参数
+    Layout = "../../../master/v2/master.treeframe.cshtml";
+    MDataRow curGlobalUserLogin = ViewBag.GlobalUserLogin ?? new MDataRow();
+    String curGlobalUserCode = ViewBag.GlobalUserCode ?? "";
+    String curGlobalModuleCode = ViewBag.GlobalModuleCode ?? "";
+    MDataTable curGlobalUserPermission = ViewBag.GlobalUserPermission ?? new MDataTable();
+    MDataRow curGlobalModuleEntity = ViewBag.GlobalModuleEntity ?? new MDataRow();
+    String curGlobalAdminResPath = ViewBag.GlobalAdminResPath ?? "";
+
+    //页面参数    
+    String curController = "/cms/info";
+
+}
+
+@section MainHeader
+{
+
+   
+}
+
+@section NavTree
+{
+    <ul id="mainTree" class="ztree" style="margin-top:3px;"></ul>
+}
+
+@section MainBottom
+{
+    <script>
+        var curChannelCode = '';
+        var curGlobalData = {};
+        var sWhere = {};
+        layui.config({
+            base: '@curGlobalAdminResPath/layuiadmin/lib/' //静态资源所在路径
+        }).use(['table', 'layer', 'element', 'adfCommon'], function () {
+            var
+                table = layui.table,
+                layer = layui.layer,
+                element = layui.element,
+                adfCommon = layui.adfCommon;
+
+            /*函数*/
+
+            //树click事件
+            function treeClick(event, treeId, treeNode) {
+                // 事务处理
+                curChannelCode = treeNode.channelcode;
+                var sUrl = "/cms/info/list?channelcode=" + curChannelCode + "&mccode=@curGlobalModuleCode";
+                $("#mainFrame").attr("src", sUrl);
+            }
+            
+            /*加载树*/
+            //加载tree
+            adfCommon.loadZtree("mainTree", "/cms/channel/GetTreeData?mccode=@curGlobalModuleCode&docmd=list", ['channelcode'], "channelname", "channelcode", "parentcode", treeClick, null);
+
+        });
+
+        $(function () {
+
+            var h = $(window).height();
+            //var frameH = $("#mainFrame").height();
+            $("#mainFrame").height(h-50);
+            //$("#mainFrame") =
+            //alert(h);
+            //alert(frameH);
+
+        });
+    </script>
+}
